@@ -1,0 +1,10 @@
+sudo: required
+
+language: go
+
+deploy:
+  provider: gae
+  project: pulsecheck-167520
+  keyfile: gce.json
+  verbosity: debug
+  on: master
