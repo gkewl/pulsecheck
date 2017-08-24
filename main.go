@@ -54,7 +54,7 @@ func handleHome(res http.ResponseWriter, req *http.Request) {
 		Name string
 	}
 	prod := Product{
-		Name: "Under Construction",
+		Name: "Welcome",
 	}
 	payload, _ := json.Marshal(prod)
 	res.Write([]byte(payload))
