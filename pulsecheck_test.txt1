@@ -1,0 +1,73 @@
+package main_test
+
+import (
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	"gkewl/pulsecheck/apis/ping"
+	"gkewl/pulsecheck/common"
+	"gkewl/pulsecheck/config"
+	"gkewl/pulsecheck/connhandler"
+	"gkewl/pulsecheck/routehandler"
+	"gkewl/pulsecheck/rroutes"
+)
+
+var (
+	server *httptest.Server
+	reader io.Reader // Ignore this for now
+
+)
+
+func init() {
+
+	var err error
+	var ctx common.AppContext
+	config.LoadConfigurations()
+
+	ctx.Db, err = dbhandler.CreateConnection()
+	if err != nil {
+		fmt.Printf("Err: %+v", err)
+	}
+	testAPIs := droutes.APIs
+	router := routehandler.NewRouter(&ctx, testAPIs, "/api/v1")
+
+	var apis = common.APIRoutes{
+		ping.GetRoutes(),
+	}
+
+	// ctx = common.AppContext{}
+	router = routehandler.NewRouter(&ctx, apis, "/api/v1")
+	server = httptest.NewServer(router) // Creating new server with the user handlers
+
+}
+
+func TestPing(t *testing.T) {
+
+	// Call ping api
+	// validate result for success
+	apiURL := fmt.Sprintf("%s/api/v1/ping", server.URL) // Grab the address for the API endpoint
+
+	reader = strings.NewReader("")
+
+	request, err := http.NewRequest("GET", apiURL, reader)
+
+	res, err := http.DefaultClient.Do(request)
+
+	if err != nil {
+
+		t.Error(err)
+		fmt.Println(err)
+
+	}
+
+	if res.StatusCode != 200 {
+
+		t.Errorf("Expected: 200  Actual : %d", res.StatusCode)
+
+	}
+
+}

@@ -1,68 +1,116 @@
 package main
 
-import "github.com/dgrijalva/jwt-go"
-import "net/http"
-import "encoding/json"
+import (
+	"context"
+	"flag"
+	"fmt"
+	"net/http"
+	_ "net/http/pprof"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-import "fmt"
+	"github.com/Sirupsen/logrus"
+	"github.com/gorilla/handlers"
 
-func validateToken(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("x-Myheader", "token")
-	res.Write([]byte("validate"))
-}
+	"github.com/gkewl/pulsecheck/common"
+	"github.com/gkewl/pulsecheck/config"
+	"github.com/gkewl/pulsecheck/constant"
+	"github.com/gkewl/pulsecheck/dbhandler"
+	eh "github.com/gkewl/pulsecheck/errorhandler"
+	"github.com/gkewl/pulsecheck/routehandler"
+	"github.com/gkewl/pulsecheck/rroutes"
+)
 
-func handleToken(res http.ResponseWriter, req *http.Request) {
-	type MyCustomClaims struct {
-		Admin bool   `json:"admin"`
-		Name  string `json:"name"`
-		jwt.StandardClaims
-	}
+// go:generate swagger generate spec
+// accept values from -ldflags
+var (
+	Version   = "undefined"
+	BuildTime = "undefined"
+	GitHash   = "undefined"
+)
+var log = logrus.New()
 
-	claims := MyCustomClaims{
-		true,
-		"Gokul",
-		jwt.StandardClaims{
-			ExpiresAt: 15000,
-			Issuer:    "Pulsecheck",
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenString, _ := token.SignedString([]byte("secret"))
-
-	res.Header().Set("Authorization", fmt.Sprintf("Bearer %v", tokenString))
-
-	tok, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(tok *jwt.Token) (interface{}, error) {
-		if _, ok := tok.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", tok.Header["alg"])
-		}
-		return []byte("secret"), nil
-	})
-
-	if claims, ok := tok.Claims.(*MyCustomClaims); ok && tok.Valid {
-		fmt.Println(claims.Admin, claims.Name)
-	} else {
-		fmt.Println(err)
-	}
-
-	res.Write([]byte(tokenString))
-}
-
-func handleHome(res http.ResponseWriter, req *http.Request) {
-	type Product struct {
-		Name string
-	}
-	prod := Product{
-		Name: "Welcome",
-	}
-	payload, _ := json.Marshal(prod)
-	res.Write([]byte(payload))
-}
+var ctx common.AppContext
 
 func main() {
-	http.HandleFunc("/validate", validateToken)
-	http.HandleFunc("/token", handleToken)
-	http.HandleFunc("/", handleHome)
-	http.ListenAndServe(":8080", nil)
+	fmt.Printf("Version    : %s\n", Version)
+	fmt.Printf("Git Hash   : %s\n", GitHash)
+	fmt.Printf("Build Time : %s\n", BuildTime)
+
+	boolPtr := flag.Bool("version", false, "print version and exit")
+	flag.Parse()
+	//	fmt.Println("versionflag:", *boolPtr)
+
+	if *boolPtr == true {
+		return
+	}
+	config.LoadConfigurations()
+
+	ctx := common.AppContext{}
+
+	// pass to handlers in context
+	ctx.Version = Version
+	ctx.BuildTime = BuildTime
+	ctx.GitHash = GitHash
+	var err error
+	ctx.Db, err = dbhandler.CreateConnection()
+	if err != nil {
+		// ------ JUST GO PANIC ------
+		panic("Failed to connected to database: %s mysql ")
+	} else {
+		fmt.Println("Connected to database: mysql ")
+	}
+
+	log.Formatter = new(logrus.JSONFormatter)
+
+	if ctx.Db != nil {
+		defer ctx.Db.Close()
+	}
+
+	router := routehandler.NewRouter(&ctx, rroutes.APIs, "/api/v1")
+	router.NotFoundHandler = http.HandlerFunc(eh.NotFound)
+
+	routehandler.AttachProfiler(router)
+
+	//Initialize concrete instances
+	Initialize()
+
+	env := "PRD"
+	timeout, _ := time.ParseDuration()
+	var httpServer *http.Server
+	if env == "DEV" {
+		httpServer = &http.Server{
+			Addr: ":8080",
+			Handler: handlers.CORS(
+				handlers.AllowedOrigins([]string{"http://localhost:8080", "*"}),
+				handlers.AllowedHeaders([]string{"Authorization"}),
+				handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE"}))(router),
+			ReadTimeout:    timeout,
+			WriteTimeout:   timeout,
+			MaxHeaderBytes: 1 << 20,
+		}
+	} else {
+		httpServer = &http.Server{
+			Addr:           ":8080",
+			Handler:        router,
+			ReadTimeout:    timeout,
+			WriteTimeout:   timeout,
+			MaxHeaderBytes: 1 << 20,
+		}
+	}
+
+	quitChannel := make(chan os.Signal, 1)
+	signal.Notify(quitChannel, os.Interrupt, os.Kill, syscall.SIGTERM)
+	go func() {
+		sig := <-quitChannel
+		log.Info("Received quit signal: ", sig)
+		shutdownCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+		httpServer.Shutdown(shutdownCtx)
+		log.Info("Exiting application due to: ", sig)
+		os.Exit(0)
+	}()
+	httpServer.ListenAndServe()
+	<-make(chan bool) // wait for os.Exit() above
 }

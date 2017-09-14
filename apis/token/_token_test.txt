@@ -1,0 +1,64 @@
+package token_test
+
+import (
+	"net/http/httptest"
+	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	"github.com/gkewl/pulsecheck/apis/token"
+	"github.com/gkewl/pulsecheck/common"
+	"github.com/gkewl/pulsecheck/config"
+	"github.com/gkewl/pulsecheck/dbhandler"
+	"github.com/gkewl/pulsecheck/model"
+	"github.com/gkewl/pulsecheck/protocol"
+	"github.com/gkewl/pulsecheck/routehandler"
+	"github.com/gkewl/pulsecheck/teststore"
+)
+
+var (
+	httpCaller  protocol.HTTPTestCaller
+	mqttCaller  protocol.MQTTTestCaller
+	server      *httptest.Server
+	router      *routehandler.HTTPRouter
+	baseUrl     string
+	mqttClient  *protocol.MQTTClient
+	glTestStore model.StoreInfo
+)
+
+var apis = common.APIRoutes{
+	token.GetRoutes(),
+}
+
+var _ = BeforeSuite(func() {
+	var err error
+	glTestStore, err = teststore.Setup()
+	Expect(err).To(BeNil())
+})
+
+var _ = AfterSuite(func() {
+	err := teststore.Teardown(glTestStore)
+	Expect(err).To(BeNil())
+})
+
+func TestSuite(t *testing.T) {
+	httpCaller = protocol.HTTPTestCaller{BaseURL: baseUrl, Router: router}
+	mqttCaller = protocol.MQTTTestCaller{Client: mqttClient}
+
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "github.com/gkewl/pulsecheck Token Test Suite")
+}
+
+func init() {
+	config.LoadConfigurations()
+
+	ctx := common.AppContext{}
+	ctx.Db, _ = dbhandler.CreateConnection()
+
+	router = routehandler.NewRouter(&ctx, apis, "/api/v1")
+	server = httptest.NewServer(router) //Creating new server with the user handlers
+	baseUrl = server.URL + "/api/v1"
+
+	mqttClient = protocol.NewMQTTClient(&ctx, apis)
+}
