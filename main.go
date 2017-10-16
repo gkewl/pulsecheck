@@ -1,68 +1,253 @@
 package main
 
-import "github.com/dgrijalva/jwt-go"
-import "net/http"
-import "encoding/json"
+import (
+	"context"
+	"crypto/tls"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"reflect"
+	"time"
 
-import "fmt"
+	elastic "gopkg.in/olivere/elastic.v5"
+)
 
-func validateToken(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("x-Myheader", "token")
-	res.Write([]byte("validate"))
+// Tweet is a structure used for serializing/deserializing data in Elasticsearch.
+type Tweet struct {
+	User     string                `json:"user"`
+	Message  string                `json:"message"`
+	Retweets int                   `json:"retweets"`
+	Image    string                `json:"image,omitempty"`
+	Created  time.Time             `json:"created,omitempty"`
+	Tags     []string              `json:"tags,omitempty"`
+	Location string                `json:"location,omitempty"`
+	Suggest  *elastic.SuggestField `json:"suggest_field,omitempty"`
 }
 
-func handleToken(res http.ResponseWriter, req *http.Request) {
-	type MyCustomClaims struct {
-		Admin bool   `json:"admin"`
-		Name  string `json:"name"`
-		jwt.StandardClaims
-	}
-
-	claims := MyCustomClaims{
-		true,
-		"Gokul",
-		jwt.StandardClaims{
-			ExpiresAt: 15000,
-			Issuer:    "Pulsecheck",
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenString, _ := token.SignedString([]byte("secret"))
-
-	res.Header().Set("Authorization", fmt.Sprintf("Bearer %v", tokenString))
-
-	tok, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(tok *jwt.Token) (interface{}, error) {
-		if _, ok := tok.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", tok.Header["alg"])
+const mapping = `
+{
+	"settings":{
+		"number_of_shards": 1,
+		"number_of_replicas": 0
+	},
+	"mappings":{
+		"tweet":{
+			"properties":{
+				"user":{
+					"type":"keyword"
+				},
+				"message":{
+					"type":"text",
+					"store": true,
+					"fielddata": true
+				},
+				"image":{
+					"type":"keyword"
+				},
+				"created":{
+					"type":"date"
+				},
+				"tags":{
+					"type":"keyword"
+				},
+				"location":{
+					"type":"geo_point"
+				},
+				"suggest_field":{
+					"type":"completion"
+				}
+			}
 		}
-		return []byte("secret"), nil
-	})
-
-	if claims, ok := tok.Claims.(*MyCustomClaims); ok && tok.Valid {
-		fmt.Println(claims.Admin, claims.Name)
-	} else {
-		fmt.Println(err)
 	}
-
-	res.Write([]byte(tokenString))
-}
-
-func handleHome(res http.ResponseWriter, req *http.Request) {
-	type Product struct {
-		Name string
-	}
-	prod := Product{
-		Name: "Welcome",
-	}
-	payload, _ := json.Marshal(prod)
-	res.Write([]byte(payload))
-}
+}`
 
 func main() {
-	http.HandleFunc("/validate", validateToken)
-	http.HandleFunc("/token", handleToken)
-	http.HandleFunc("/", handleHome)
-	http.ListenAndServe(":8080", nil)
+	// Starting with elastic.v5, you must pass a context to execute each service
+	ctx := context.Background()
+
+	// Obtain a client and connect to the default Elasticsearch installation
+	// on 127.0.0.1:9200. Of course you can configure your client to connect
+	// to other hosts and configure it in various other ways.
+
+	c := &http.Client{
+		Transport: &http.Transport{
+			//                     TLSClientConfig: &tls.Config{},
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+	client, err := elastic.NewClient(
+		elastic.SetHttpClient(c),
+		elastic.SetSniff(false),
+		elastic.SetURL("https://aade6f5cd32cedd31ee3a3c61384275f.us-central1.gcp.cloud.es.io:9243"),
+		elastic.SetBasicAuth("elastic", "zcAIW0nyX6AOeBQNGEwFPXaA"))
+
+	//client, err := elastic.NewClient()
+	if err != nil {
+		// Handle error
+		fmt.Println("failed")
+		panic(err)
+	}
+	fmt.Println("connected")
+	// // Ping the Elasticsearch server to get e.g. the version number
+	// info, code, err := client.Ping(elastic.SetURL("https://aade6f5cd32cedd31ee3a3c61384275f.us-central1.gcp.cloud.es.io:9243"),
+	// 	elastic.SetBasicAuth("elastic", "zcAIW0nyX6AOeBQNGEwFPXaA")).Do(ctx)
+	// if err != nil {
+	// 	// Handle error
+	// 	panic(err)
+	// }
+	// fmt.Printf("Elasticsearch returned with code %d and version %s\n", code, info.Version.Number)
+
+	// // Getting the ES version number is quite common, so there's a shortcut
+	// esversion, err := client.ElasticsearchVersion("http://aade6f5cd32cedd31ee3a3c61384275f.us-central1.gcp.cloud.es.io:9200")
+	// if err != nil {
+	// 	// Handle error
+	// 	panic(err)
+	// }
+	// fmt.Printf("Elasticsearch version %s\n", esversion)
+
+	// Use the IndexExists service to check if a specified index exists.
+	exists, err := client.IndexExists("twitter").Do(ctx)
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+	if !exists {
+		// Create a new index.
+		createIndex, err := client.CreateIndex("twitter").BodyString(mapping).Do(ctx)
+		if err != nil {
+			// Handle error
+			panic(err)
+		}
+		if !createIndex.Acknowledged {
+			// Not acknowledged
+		}
+	}
+
+	// Index a tweet (using JSON serialization)
+	tweet1 := Tweet{User: "gokul", Message: "Take Five", Retweets: 0}
+	put1, err := client.Index().
+		Index("twitter").
+		Type("tweet").
+		Id("1").
+		BodyJson(tweet1).
+		Do(ctx)
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+	fmt.Printf("Indexed tweet %s to index %s, type %s\n", put1.Id, put1.Index, put1.Type)
+
+	// Index a second tweet (by string)
+	tweet2 := `{"user" : "olivere", "message" : "It's a Raggy Waltz"}`
+	put2, err := client.Index().
+		Index("twitter").
+		Type("tweet").
+		Id("2").
+		BodyString(tweet2).
+		Do(ctx)
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+	fmt.Printf("Indexed tweet %s to index %s, type %s\n", put2.Id, put2.Index, put2.Type)
+
+	// Get tweet with specified ID
+	get1, err := client.Get().
+		Index("twitter").
+		Type("tweet").
+		Id("1").
+		Do(ctx)
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+	if get1.Found {
+		fmt.Printf("Got document %s in version %d from index %s, type %s\n", get1.Id, get1.Version, get1.Index, get1.Type)
+	}
+
+	// Flush to make sure the documents got written.
+	_, err = client.Flush().Index("twitter").Do(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	// Search with a term query
+	termQuery := elastic.NewTermQuery("user", "gokul")
+	searchResult, err := client.Search().
+		Index("twitter").   // search in index "twitter"
+		Query(termQuery).   // specify the query
+		Sort("user", true). // sort by "user" field, ascending
+		From(0).Size(10).   // take documents 0-9
+		Pretty(true).       // pretty print request and response JSON
+		Do(ctx)             // execute
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+
+	// searchResult is of type SearchResult and returns hits, suggestions,
+	// and all kinds of other information from Elasticsearch.
+	fmt.Printf("Query took %d milliseconds\n", searchResult.TookInMillis)
+
+	// Each is a convenience function that iterates over hits in a search result.
+	// It makes sure you don't need to check for nil values in the response.
+	// However, it ignores errors in serialization. If you want full control
+	// over iterating the hits, see below.
+	var ttyp Tweet
+	for _, item := range searchResult.Each(reflect.TypeOf(ttyp)) {
+		if t, ok := item.(Tweet); ok {
+			fmt.Printf("Tweet by %s: %s\n", t.User, t.Message)
+		}
+	}
+	// TotalHits is another convenience function that works even when something goes wrong.
+	fmt.Printf("Found a total of %d tweets\n", searchResult.TotalHits())
+
+	// Here's how you iterate through results with full control over each step.
+	if searchResult.Hits.TotalHits > 0 {
+		fmt.Printf("Found a total of %d tweets\n", searchResult.Hits.TotalHits)
+
+		// Iterate through results
+		for _, hit := range searchResult.Hits.Hits {
+			// hit.Index contains the name of the index
+
+			// Deserialize hit.Source into a Tweet (could also be just a map[string]interface{}).
+			var t Tweet
+			err := json.Unmarshal(*hit.Source, &t)
+			if err != nil {
+				// Deserialization failed
+			}
+
+			// Work with tweet
+			fmt.Printf("Tweet by %s: %s\n", t.User, t.Message)
+		}
+	} else {
+		// No hits
+		fmt.Print("Found no tweets\n")
+	}
+
+	// Update a tweet by the update API of Elasticsearch.
+	// We just increment the number of retweets.
+	update, err := client.Update().Index("twitter").Type("tweet").Id("1").
+		Script(elastic.NewScriptInline("ctx._source.retweets += params.num").Lang("painless").Param("num", 1)).
+		Upsert(map[string]interface{}{"retweets": 0}).
+		Do(ctx)
+	if err != nil {
+		// Handle error
+		panic(err)
+	}
+	fmt.Printf("New version of tweet %q is now %d\n", update.Id, update.Version)
+
+	// ...
+
+	// // Delete an index.
+	// deleteIndex, err := client.DeleteIndex("twitter").Do(ctx)
+	// if err != nil {
+	// 	// Handle error
+	// 	panic(err)
+	// }
+	// if !deleteIndex.Acknowledged {
+	// 	// Not acknowledged
+	// }
 }
