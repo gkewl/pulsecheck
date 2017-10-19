@@ -16,7 +16,7 @@ import (
 
 	"github.com/gkewl/pulsecheck/common"
 	"github.com/gkewl/pulsecheck/config"
-	"github.com/gkewl/pulsecheck/constant"
+	//	"github.com/gkewl/pulsecheck/constant"
 	"github.com/gkewl/pulsecheck/dbhandler"
 	eh "github.com/gkewl/pulsecheck/errorhandler"
 	"github.com/gkewl/pulsecheck/routehandler"
@@ -75,14 +75,14 @@ func main() {
 	routehandler.AttachProfiler(router)
 
 	//Initialize concrete instances
-	Initialize()
+	//Initialize()
 
-	env := "PRD"
-	timeout, _ := time.ParseDuration()
+	env := "DEV"
+	timeout, _ := time.ParseDuration("60s")
 	var httpServer *http.Server
 	if env == "DEV" {
 		httpServer = &http.Server{
-			Addr: ":8080",
+			Addr: ":1025",
 			Handler: handlers.CORS(
 				handlers.AllowedOrigins([]string{"http://localhost:8080", "*"}),
 				handlers.AllowedHeaders([]string{"Authorization"}),

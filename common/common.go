@@ -4,11 +4,10 @@ import (
 	"context"
 	//"encoding/json"
 	"fmt"
+
 	"github.com/gkewl/pulsecheck/constant"
 	"github.com/gkewl/pulsecheck/logger"
 
-	"github.com/gkewl/pulsecheck/xid"
-	"github.com/jmoiron/sqlx"
 	"io"
 	"io/ioutil"
 	"log"
@@ -17,6 +16,9 @@ import (
 	"runtime/debug"
 	"strings"
 	"time"
+
+	"github.com/gkewl/pulsecheck/xid"
+	"github.com/jmoiron/sqlx"
 )
 
 //this interface is used for every class which can be
@@ -95,6 +97,7 @@ type RequestContext interface {
 	Xid() string
 	Value(name string, defValue string) string           // string request parameter
 	IntValue(name string, defValue int64) int64          // numeric request parameter
+	IntValue32(name string, defValue int) int            // numeric request parameter
 	BoolValue(name string, defValue bool) bool           // boolean request parameter
 	FloatValue(name string, defValue float64) float64    // float request parameter
 	TimeValue(name string, defValue time.Time) time.Time // time request parameter

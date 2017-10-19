@@ -4,11 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	auth "github.com/gkewl/pulsecheck/authentication"
 	"github.com/gkewl/pulsecheck/common"
-	"github.com/gkewl/pulsecheck/config"
-	"github.com/gkewl/pulsecheck/constant"
-	"github.com/gkewl/pulsecheck/utilities"
+	//	"github.com/gkewl/pulsecheck/config"
 	"io"
 	"io/ioutil"
 	"log"
@@ -17,6 +16,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gkewl/pulsecheck/constant"
+	"github.com/gkewl/pulsecheck/utilities"
 
 	"github.com/gorilla/mux"
 )
@@ -83,7 +85,7 @@ func NewHTTPRequestContext(appCtx *common.AppContext, r *http.Request) (hrc HTTP
 	}
 
 	// this timeout mostly affects MOS internal clients, eg database handles
-	timeout, _ := time.ParseDuration(config.GetEnv(config.MOS_CLIENT_TIMEOUT))
+	timeout, _ := time.ParseDuration("60s")
 
 	hrc.Context = context.TODO() //context.Background()
 
@@ -162,6 +164,18 @@ func (hrc *HTTPRequestContext) IntValue(name string, defValue int64) int64 {
 	return defValue
 }
 
+// IntValue32 returns the named input variable as an int64
+func (hrc *HTTPRequestContext) IntValue32(name string, defValue int) int {
+	val := hrc.Value(name, "default")
+	if val == "default" {
+		return defValue
+	}
+	if iVal, err := strconv.Atoi(val); err == nil {
+		return iVal
+	}
+	return defValue
+}
+
 // BoolValue returns the named input variable as an bool
 func (hrc *HTTPRequestContext) BoolValue(name string, defValue bool) bool {
 	val := hrc.Value(name, "default")
@@ -214,4 +228,14 @@ func (hrc *HTTPRequestContext) RequestBody() []byte {
 
 func (hrc *HTTPRequestContext) RequestUploadFiles() []common.Upload {
 	return hrc.files
+}
+
+// ResetForRetry clears out deferred functions, log fields and rolls back
+// the transaction
+func (req *HTTPRequestContext) ResetForRetry() (err error) {
+	req.Tx().Rollback()
+	req.Txn, err = req.AppCtx.Db.Beginx()
+	//req.RequestContextBase.ClearDeferredRequests()
+	//req.LogValues = map[string]interface{}{}
+	return
 }

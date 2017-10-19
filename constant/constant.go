@@ -25,6 +25,11 @@ const Xid = "Xid"
 
 const DefaultAdmin = 1
 
+const (
+	ResultOk   = "Ok"
+	ResultFail = "Fail"
+)
+
 const SQL_NOT_FOUND string = "sql: no rows in result set"
 const SQL_DUPLICATE_ENTRY = "Error 1062: Duplicate entry"
 

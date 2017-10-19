@@ -3,10 +3,12 @@ package protocol
 import (
 	"encoding/json"
 	"fmt"
+	"runtime"
+
 	"github.com/gkewl/pulsecheck/constant"
+	"github.com/gkewl/pulsecheck/model"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"runtime"
 
 	auth "github.com/gkewl/pulsecheck/authentication"
 	"github.com/gkewl/pulsecheck/common"
@@ -38,7 +40,7 @@ func (c *MQTTTestCaller) MakeTestCall(config *TestConfig) string {
 	meta := map[string]interface{}{}
 	if config.AuthLevel != constant.Guest {
 		authBackend := auth.InitJWTAuthenticationBackend()
-		token, _ := authBackend.GenerateToken("gokulm", 1, "USER", auth.RoleName(config.AuthLevel))
+		token, _ := authBackend.GenerateToken("rgunari@gmail.com", model.UserCompany{UserID: 1, CompanyID: 1}, "USER")
 		meta["token"] = token.Token
 	}
 	meta["action"] = config.Action

@@ -82,7 +82,7 @@ func (ah NewHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			_ = reqCtx.Tx().Rollback()
 		}
 		dbEnd = time.Now()
-		RunDeferredRequests(&reqCtx, (err == nil))
+		//RunDeferredRequests(&reqCtx, (err == nil))
 	}
 	fields := map[string]interface{}{
 		"protocol":   "http",

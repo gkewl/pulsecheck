@@ -13,7 +13,7 @@ import (
 	"github.com/gkewl/pulsecheck/constant"
 	"github.com/gkewl/pulsecheck/dbhandler"
 	eh "github.com/gkewl/pulsecheck/errorhandler"
-	"github.com/gkewl/pulsecheck/model"
+	//	"github.com/gkewl/pulsecheck/model"
 	"github.com/gkewl/pulsecheck/utilities"
 	"github.com/gkewl/pulsecheck/xid"
 )
@@ -72,10 +72,6 @@ type TestRequestContext struct {
 	tx              *sqlx.Tx
 	valuesRequested []string
 	logValues       map[string]interface{}
-	events          []common.SourceEvent
-
-	// to override the pedigree, set this
-	DefaultPedigree *model.Pedigree
 
 	MaxDeadlockRetries int
 	Deadlockretrycount int
@@ -177,16 +173,20 @@ func (req *TestRequestContext) Xid() string {
 
 // Tx creates and returns an open database transaction
 func (req *TestRequestContext) Tx() *sqlx.Tx {
+	var err error
+
 	if req.tx == nil {
 		if req.appContext.Db == nil {
-			var err error
 			req.appContext.Db, err = dbhandler.CreateConnection()
 			if err != nil {
 				println("ERROR CREATING DB CONNECTION", err.Error())
 			}
 		}
-		req.tx, _ = dbhandler.CreateTx(&req.appContext)
+		req.tx, err = dbhandler.CreateTx(&req.appContext)
+		if err != nil {
+			println("CREATING DB TX fail  ", err.Error())
 
+		}
 	}
 	return req.tx
 }
@@ -252,6 +252,18 @@ func (req *TestRequestContext) IntValue(name string, defValue int64) int64 {
 	return defValue
 }
 
+// IntValue32 returns the named input variable as an int64
+func (hrc *TestRequestContext) IntValue32(name string, defValue int) int {
+	val := hrc.Value(name, "default")
+	if val == "default" {
+		return defValue
+	}
+	if iVal, err := strconv.Atoi(val); err == nil {
+		return iVal
+	}
+	return defValue
+}
+
 // FloatValue returns the named input variable as a float64
 func (req *TestRequestContext) FloatValue(name string, defValue float64) float64 {
 	val := req.Value(name, "default")
@@ -302,17 +314,17 @@ func (req *TestRequestContext) RequestBody() []byte {
 // GetPedigree implements the RequestContext method; this is copied
 // from the 'superclass' because it's not possible for an 'inherited'
 // method to call a 'subclass' method (go is not polymorphic)
-func (req *TestRequestContext) GetPedigree(getpf common.GetAuthInfoFunc) *model.Pedigree {
-	if req.DefaultPedigree == nil {
-		pedigree := getpf(req.GetContext())
-		pedigree.ActorID = req.ActorID()
-		pedigree.ActorName = req.ActorName()
-		pedigree.Xid = req.Xid()
-		pedigree.Service = req.ServiceName()
-		req.DefaultPedigree = pedigree
-	}
-	return req.DefaultPedigree
-}
+// func (req *TestRequestContext) GetPedigree(getpf common.GetAuthInfoFunc) *model.Pedigree {
+// 	if req.DefaultPedigree == nil {
+// 		pedigree := getpf(req.GetContext())
+// 		pedigree.ActorID = req.ActorID()
+// 		pedigree.ActorName = req.ActorName()
+// 		pedigree.Xid = req.Xid()
+// 		pedigree.Service = req.ServiceName()
+// 		req.DefaultPedigree = pedigree
+// 	}
+// 	return req.DefaultPedigree
+// }
 
 // RequestUploadFiles return request uploaded files
 func (req *TestRequestContext) RequestUploadFiles() []common.Upload {
@@ -338,24 +350,24 @@ func (req *TestRequestContext) DeadlockRetryCount() int {
 
 // RecordEvent records an event like RequestContextBase but also saves it for easy
 // retrieval by tests
-func (req *TestRequestContext) RecordEvent(event common.SourceEvent) {
-	req.RequestContextBase.RecordEvent(event)
-	req.events = append(req.events, event)
-}
+// func (req *TestRequestContext) RecordEvent(event common.SourceEvent) {
+// 	req.RequestContextBase.RecordEvent(event)
+// 	req.events = append(req.events, event)
+// }
 
 // GetRecordedEvents returns all the source events recorded since it was last called, if any.
-func (req *TestRequestContext) GetRecordedEvents() []common.SourceEvent {
-	events := req.RequestContextBase.GetRecordedEvents()
-	req.ClearRecordedEvents()
-	return events
-}
+// func (req *TestRequestContext) GetRecordedEvents() []common.SourceEvent {
+// 	events := req.RequestContextBase.GetRecordedEvents()
+// 	req.ClearRecordedEvents()
+// 	return events
+// }
 
 // ResetForRetry clears out deferred functions, log fields and rolls back
 // the transaction
 func (req *TestRequestContext) ResetForRetry() (err error) {
 	req.Tx().Rollback()
 	req.tx, err = req.appContext.Db.Beginx()
-	req.RequestContextBase.ClearDeferredRequests()
+	//req.RequestContextBase.ClearDeferredRequests()
 	req.logValues = map[string]interface{}{}
 	return
 }

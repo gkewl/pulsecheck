@@ -57,45 +57,27 @@ var (
 	ErrDBCommitTransactions   = newNamedError(902, "Error committing transaction", http.StatusNotFound)
 )
 
-/***************************************
-	Actor id starts from: 10001
-****************************************/
-var (
-	ErrActorInvalidEntity  = newNamedError(10001, "Actor Invalid entity", http.StatusPreconditionFailed)
-	ErrActorInsert         = newNamedError(10003, "Inserting entity to database failed", http.StatusConflict)
-	ErrActorUpdate         = newNamedError(10004, "Update actor failed", http.StatusPreconditionFailed)
-	ErrActorDelete         = newNamedError(10005, "Delete actor failed", http.StatusConflict)
-	ErrActorDataNotFound   = newNamedError(10006, "Data not found", http.StatusNotFound)
-	ErrActorSearch         = newNamedError(10007, "Search actor failed", http.StatusConflict)
-	ErrActorParentNotFound = newNamedError(10008, "Parent name not found", http.StatusNotFound)
-	ErrActorUserType       = newNamedError(10009, "Creating USER type actor not allowed", http.StatusPreconditionFailed)
-	ErrActorInvalidRole    = newNamedError(10010, "Role update not allowed", http.StatusPreconditionFailed)
-)
-
 //authentication
 var (
-	ErrAuthGenerateToken         = newNamedError(16004, "Generate token failed", http.StatusUnauthorized)
-	ErrUnAuthorizedUserForAPI    = newNamedError(16006, "User is not authorized to use current API", http.StatusUnauthorized)
-	ErrAuthUserNameNotAvailable  = newNamedError(16007, "User name not available in body", http.StatusUnauthorized)
-	ErrAuthWrongUseridOrPwd      = newNamedError(16008, "Invalid username or password", http.StatusUnauthorized)
-	ErrAuthUserIdNotAvailbleInDB = newNamedError(16009, "Username is not configured in db", http.StatusNotFound)
-	ErrAuthTokenNotAvailable     = newNamedError(16010, "Token not present in request", http.StatusUnauthorized)
-	ErrAuthTokenError            = newNamedError(16011, "Invalid token", http.StatusUnauthorized)
+	ErrAuthGenerateToken         = newNamedError(1000, "Generate token failed", http.StatusUnauthorized)
+	ErrUnAuthorizedUserForAPI    = newNamedError(1001, "User is not authorized to use current API", http.StatusUnauthorized)
+	ErrAuthUserNameNotAvailable  = newNamedError(1002, "User name not available in body", http.StatusUnauthorized)
+	ErrAuthWrongUseridOrPwd      = newNamedError(1003, "Invalid username or password", http.StatusUnauthorized)
+	ErrAuthUserIdNotAvailbleInDB = newNamedError(1004, "Username is not configured in db", http.StatusNotFound)
+	ErrAuthTokenNotAvailable     = newNamedError(1005, "Token not present in request", http.StatusUnauthorized)
+	ErrAuthTokenError            = newNamedError(1006, "Invalid token", http.StatusUnauthorized)
 )
 
-//Search
 var (
-	ErrSearchMultipleEntity = newNamedError(25001, "Multiple entitites not allowed search parameter", http.StatusForbidden)
-	ErrSearchError          = newNamedError(25002, "Error in search module", http.StatusNotFound)
+	ErrCompanyInsert       = newNamedError(1101, "Company Inserting entity to database failed", http.StatusConflict)
+	ErrCompanyDataNotFound = newNamedError(1102, "Company Data not found", http.StatusNotFound)
+	ErrCompanyUpdate       = newNamedError(1103, "Update Company failed", http.StatusConflict)
+	ErrCompanyDelete       = newNamedError(1104, "Company delete failed", http.StatusConflict)
 )
 
-/***************************************
-	Token: 75000
-****************************************/
 var (
-	ErrTokenDataNotFound = newNamedError(75000, "Token data not found", http.StatusNotFound)
-	ErrTokenInsert       = newNamedError(75001, "Token Inserting entity to database failed", http.StatusConflict)
-	ErrTokenDelete       = newNamedError(75002, "Token delete failed", http.StatusConflict)
-	ErrTokenUpdate       = newNamedError(75003, "Token update failed", http.StatusConflict)
-	ErrTokenValidation   = newNamedError(75004, "Token data invalid", http.StatusPreconditionFailed)
+	ErrAuthUserInsert       = newNamedError(1201, "Auth user  Inserting entity to database failed", http.StatusConflict)
+	ErrAuthUserDataNotFound = newNamedError(1202, "User Data not found", http.StatusNotFound)
+	ErrAuthUserUpdate       = newNamedError(1203, "Update authuser failed", http.StatusConflict)
+	ErrAuthUserDelete       = newNamedError(1204, "AuthUser  delete failed", http.StatusConflict)
 )

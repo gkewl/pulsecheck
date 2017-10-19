@@ -3,13 +3,14 @@ package protocol
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"time"
+
 	auth "github.com/gkewl/pulsecheck/authentication"
 	"github.com/gkewl/pulsecheck/common"
 	"github.com/gkewl/pulsecheck/constant"
 	"github.com/gkewl/pulsecheck/utilities"
 	"github.com/gkewl/pulsecheck/xid"
-	"strconv"
-	"time"
 )
 
 const (
@@ -123,6 +124,18 @@ func (mrc MQTTRequestContext) IntValue(name string, defValue int64) int64 {
 	return defValue
 }
 
+// IntValue32 returns the named input variable as an int64
+func (mrc *MQTTRequestContext) IntValue32(name string, defValue int) int {
+	val := mrc.Value(name, "default")
+	if val == "default" {
+		return defValue
+	}
+	if iVal, err := strconv.Atoi(val); err == nil {
+		return iVal
+	}
+	return defValue
+}
+
 // FloatValue returns the named input variable as a float64
 func (mrc MQTTRequestContext) FloatValue(name string, defValue float64) float64 {
 	val := mrc.Value(name, "default")
@@ -170,4 +183,14 @@ func (mrc MQTTRequestContext) RequestBody() []byte {
 //RequestUploadFiles  todo: we have to implement for mttt
 func (mrc MQTTRequestContext) RequestUploadFiles() []common.Upload {
 	return []common.Upload{}
+}
+
+// ResetForRetry clears out deferred functions, log fields and rolls back
+// the transaction
+func (req *MQTTRequestContext) ResetForRetry() (err error) {
+	req.Tx().Rollback()
+	req.Txn, err = req.AppCtx.Db.Beginx()
+	//	req.RequestContextBase.ClearDeferredRequests()
+	//	req.LogValues = map[string]interface{}{}
+	return
 }

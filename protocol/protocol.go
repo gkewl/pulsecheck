@@ -1,10 +1,10 @@
 package protocol
 
 import (
-	"fmt"
+	//"fmt"
 	"math/rand"
 	"strings"
-	"sync"
+	//"sync"
 	"time"
 
 	"github.com/gkewl/pulsecheck/common"
@@ -14,28 +14,28 @@ import (
 
 // RunDeferredRequests executes deferred requests stored in the request
 // context based on their conditions
-func RunDeferredRequests(reqCtx common.RequestContext, succeeded bool) {
-	requests := reqCtx.DeferredRequests()
-	var wg sync.WaitGroup
-	for i := 0; i < len(requests); i++ {
-		r := requests[i]
-		if r.Condition == common.DeferredAlways || (r.Condition == common.DeferredSuccess && succeeded) ||
-			(r.Condition == common.DeferredFailure && !succeeded) {
-			// Run synchronous requests in parallel and wait
-			if r.Synchronous {
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
-					runDeferredRequest(reqCtx.AppContext(), r)
-				}()
-			} else {
-				// Fire and forget async requests
-				go runDeferredRequest(reqCtx.AppContext(), r)
-			}
-		}
-	}
-	wg.Wait()
-}
+// func RunDeferredRequests(reqCtx common.RequestContext, succeeded bool) {
+// 	requests := reqCtx.DeferredRequests()
+// 	var wg sync.WaitGroup
+// 	for i := 0; i < len(requests); i++ {
+// 		r := requests[i]
+// 		if r.Condition == common.DeferredAlways || (r.Condition == common.DeferredSuccess && succeeded) ||
+// 			(r.Condition == common.DeferredFailure && !succeeded) {
+// 			// Run synchronous requests in parallel and wait
+// 			if r.Synchronous {
+// 				wg.Add(1)
+// 				go func() {
+// 					defer wg.Done()
+// 					runDeferredRequest(reqCtx.AppContext(), r)
+// 				}()
+// 			} else {
+// 				// Fire and forget async requests
+// 				go runDeferredRequest(reqCtx.AppContext(), r)
+// 			}
+// 		}
+// 	}
+// 	wg.Wait()
+// }
 
 // ProcessDeadlock checks for and logs deadlocks. returns whether the request
 // should be retried

@@ -2,16 +2,16 @@ package dbhandler_test
 
 import (
 	"testing"
-	"time"
+	//	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/gkewl/pulsecheck/config"
 	"github.com/gkewl/pulsecheck/dbhandler"
-	eh "github.com/gkewl/pulsecheck/errorhandler"
-	"github.com/gkewl/pulsecheck/model"
-	"github.com/gkewl/pulsecheck/protocol"
+	//	eh "github.com/gkewl/pulsecheck/errorhandler"
+	//	"github.com/gkewl/pulsecheck/model"
+	//	"github.com/gkewl/pulsecheck/protocol"
 )
 
 func TestSuite(t *testing.T) {
