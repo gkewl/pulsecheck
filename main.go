@@ -61,56 +61,9 @@ func main() {
 		panic("Failed to connected to database: %s mysql ")
 	} else {
 		fmt.Println("Connected to database: mysql ")
+
 	}
+	fmt.Printf("Indexed tweet %s to index %s, type %s\n", put1.Id, put1.Index, put1.Type)
 
-	log.Formatter = new(logrus.JSONFormatter)
 
-	if ctx.Db != nil {
-		defer ctx.Db.Close()
-	}
-
-	router := routehandler.NewRouter(&ctx, rroutes.APIs, "/api/v1")
-	router.NotFoundHandler = http.HandlerFunc(eh.NotFound)
-
-	routehandler.AttachProfiler(router)
-
-	//Initialize concrete instances
-	//Initialize()
-
-	env := "DEV"
-	timeout, _ := time.ParseDuration("60s")
-	var httpServer *http.Server
-	if env == "DEV" {
-		httpServer = &http.Server{
-			Addr: ":1025",
-			Handler: handlers.CORS(
-				handlers.AllowedOrigins([]string{"http://localhost:8080", "*"}),
-				handlers.AllowedHeaders([]string{"Authorization"}),
-				handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE"}))(router),
-			ReadTimeout:    timeout,
-			WriteTimeout:   timeout,
-			MaxHeaderBytes: 1 << 20,
-		}
-	} else {
-		httpServer = &http.Server{
-			Addr:           ":8080",
-			Handler:        router,
-			ReadTimeout:    timeout,
-			WriteTimeout:   timeout,
-			MaxHeaderBytes: 1 << 20,
-		}
-	}
-
-	quitChannel := make(chan os.Signal, 1)
-	signal.Notify(quitChannel, os.Interrupt, os.Kill, syscall.SIGTERM)
-	go func() {
-		sig := <-quitChannel
-		log.Info("Received quit signal: ", sig)
-		shutdownCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-		httpServer.Shutdown(shutdownCtx)
-		log.Info("Exiting application due to: ", sig)
-		os.Exit(0)
-	}()
-	httpServer.ListenAndServe()
-	<-make(chan bool) // wait for os.Exit() above
 }
