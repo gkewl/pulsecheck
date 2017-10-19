@@ -1,0 +1,34 @@
+
+* SSE basics
+** TODO core protocol handling
+*** DONE text/event-stream decoding
+*** DONE event stream protocol state
+**** retry negotiation
+**** origin tracking
+*** client connection
+**** DONE connection
+**** reconnection
+**** retry negotiation
+**** DONE connection errors
+**** origin tracking
+**** last-event-id tracking
+** EventSource API
+*** add event channel
+*** DONE messages routing
+*** DONE open message routing
+*** DONE errors routing
+*** DONE client hang-up
+*** add event listener
+
+** Optional features:
+*** DONE reader support
+*** TODO relative URLs
+*** DONE context cancellation
+*** buffering selection
+*** relative URLs
+*** POST support
+*** no connect on create
+    
+* Test strategies
+** DONE "service layer" testing - reader in, events out
+** in-process basic server tests
