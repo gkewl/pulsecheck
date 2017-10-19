@@ -15,15 +15,14 @@ import (
 	"github.com/gkewl/pulsecheck/config"
 	eh "github.com/gkewl/pulsecheck/errorhandler"
 	"github.com/gkewl/pulsecheck/logger"
-	"github.com/gkewl/pulsecheck/utilities"
 )
 
 func CreateConnection() (*sqlx.DB, error) {
 
 	dbConfig := &Config{
-		User:      "root",
-		Passwd:    "mama123",
-		Addr:      "https://localhost:8083",
+		User:      "pulsecheck" //"root",
+		Passwd:    "success" //"divith",
+		Addr:      "10.128.0.5" //"localhost:3306",
 		Net:       "tcp",
 		DBName:    "pulsecheck",
 		Collation: "utf8_unicode_ci",
@@ -42,9 +41,9 @@ func CreateConnection() (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	db.SetMaxIdleConns(maxIdleConns)
-	db.SetMaxOpenConns(maxOpenConns)
-	var d time.Duration = dbMaxLifetime
+	db.SetMaxIdleConns(25)
+	db.SetMaxOpenConns(128)
+	d := time.Duration(1800) * time.Second
 	db.SetConnMaxLifetime(d)
 	return db, nil
 }
@@ -56,7 +55,7 @@ func CreateTx(ctx *common.AppContext) (*sqlx.Tx, error) {
 
 	clientctx := context.Background()
 
-	timeout, _ := time.ParseDuration("3600")
+	timeout, _ := time.ParseDuration("3600s")
 
 	clientctx, _ = context.WithTimeout(clientctx, timeout)
 

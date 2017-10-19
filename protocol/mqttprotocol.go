@@ -58,7 +58,7 @@ func (r *MQTTRouter) Process(topic, payload string) (replyTopic, replyPayload st
 	} else {
 		replyMap["response"] = result
 	}
-	RunDeferredRequests(&reqCtx, (err == nil))
+	//RunDeferredRequests(&reqCtx, (err == nil))
 	fields := map[string]interface{}{
 		"protocol": "mqtt",
 		"action":   route.Name,

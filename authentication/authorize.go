@@ -2,22 +2,26 @@ package authentication
 
 import (
 	//	"github.com/gorilla/context"
+
 	"context"
 	"crypto/rsa"
 	"crypto/x509"
-	//"encoding/json"
 	"encoding/pem"
+	//"encoding/json"
+
 	"fmt"
+
 	"github.com/gkewl/pulsecheck/common"
 	"github.com/gkewl/pulsecheck/config"
 	"github.com/gkewl/pulsecheck/constant"
 	eh "github.com/gkewl/pulsecheck/errorhandler"
 	//"github.com/gkewl/pulsecheck/logger"
-	"github.com/gkewl/pulsecheck/model"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gkewl/pulsecheck/model"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
@@ -37,6 +41,7 @@ type JWTAuthenticationBackend struct {
 
 var authBackendInstance *JWTAuthenticationBackend
 
+// InitJWTAuthenticationBackend
 func InitJWTAuthenticationBackend() *JWTAuthenticationBackend {
 	if authBackendInstance == nil {
 		authBackendInstance = &JWTAuthenticationBackend{
@@ -47,6 +52,7 @@ func InitJWTAuthenticationBackend() *JWTAuthenticationBackend {
 	return authBackendInstance
 }
 
+// RequireTokenAuthentication
 func RequireTokenAuthentication(rw http.ResponseWriter, req *http.Request) (map[string]interface{}, error) {
 	authBackend := InitJWTAuthenticationBackend()
 
@@ -79,14 +85,14 @@ func GetUserInfoFromToken(tokenStr string) (username string, actorid int64, role
 	if err == nil {
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
 			username = claims["sub"].(string)
-			actorid = int64(claims["actorid"].(float64))
-			role = claims["scopes"].(string)
+			actorid = int64(claims["userid"].(float64))
+			//role = claims["scopes"].(string)
 		}
 	}
 	return
 }
 
-// Validate Token
+// GetValidateToken Validate Token
 func GetValidateToken(tokenStr string) (int64, error) {
 	authBackend := InitJWTAuthenticationBackend()
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
@@ -96,14 +102,14 @@ func GetValidateToken(tokenStr string) (int64, error) {
 		return 0, eh.NewError(eh.ErrAuthTokenError, err.Error())
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		return int64(claims["actorid"].(float64)), nil
+		return int64(claims["userid"].(float64)), nil
 	}
 	return 0, nil
 }
 
 //GenerateToken is the method that generates the token: for user a claims with expiration is attached, there
 // are no exp claims on a machine token making it a permanent token
-func (backend *JWTAuthenticationBackend) GenerateToken(username string, actorid int64, actorType string, role string) (model.TokenInfo, error) {
+func (backend *JWTAuthenticationBackend) GenerateToken(username string, userInfo model.UserCompany, actorType string) (model.TokenInfo, error) {
 	token := jwt.New(jwt.SigningMethodRS512)
 	claims := token.Claims.(jwt.MapClaims)
 	expireTime := time.Now().Add(time.Hour * time.Duration(GetPath().JWTExpirationDelta)).Unix()
@@ -117,8 +123,10 @@ func (backend *JWTAuthenticationBackend) GenerateToken(username string, actorid 
 	//claims["iss"] = config.AuthIssuer()
 
 	claims["sub"] = username
-	claims["actorid"] = actorid
-	claims["scopes"] = role
+	claims["userid"] = userInfo.UserID
+	claims["companyid"] = userInfo.CompanyID
+	claims["scope"] = userInfo.Role
+
 	tokenString, err := token.SignedString(backend.privateKey)
 	if err != nil {
 		return model.TokenInfo{}, err
@@ -140,20 +148,43 @@ func (backend *JWTAuthenticationBackend) getTokenRemainingValidity(timestamp int
 }
 
 func getPrivateKey() *rsa.PrivateKey {
-	data, _ := pem.Decode([]byte(config.GetEnv(config.MOS_PRIVATE_KEY_SECRET)))
-	privateKeyImported, err := x509.ParsePKCS1PrivateKey(data.Bytes)
+	// privateKeyFile, err := os.Open(config.GetEnv(config.PULSE_PRIVATE_KEY_FILEPATH))
+	// if err != nil {
+	// 	fmt.Println("Cannot find pvt key", err)
+	// }
 
+	// pemfileinfo, _ := privateKeyFile.Stat()
+	// var size = pemfileinfo.Size()
+	// pembytes := make([]byte, size)
+
+	// buffer := bufio.NewReader(privateKeyFile)
+	// _, err = buffer.Read(pembytes)
+
+	data, _ := pem.Decode([]byte(constant.PULSE_PRIVATE_KEY))
+	// privateKeyFile.Close()
+	privateKeyImported, err := x509.ParsePKCS1PrivateKey(data.Bytes)
 	if err != nil {
 		fmt.Println("Importing PvtKey err ", err)
 	}
-
 	return privateKeyImported
 }
 
 func getPublicKey() *rsa.PublicKey {
-	data, _ := pem.Decode([]byte(config.GetEnv(config.MOS_PUBLIC_KEY_SECRET)))
-	publicKeyImported, err := x509.ParsePKIXPublicKey(data.Bytes)
+	// privateKeyFile, err := os.Open(config.GetEnv(config.PULSE_PUBLIC_KEY_FILEPATH))
+	// if err != nil {
+	// 	fmt.Println("Cannot find pvt key", err)
+	// }
 
+	// pemfileinfo, _ := privateKeyFile.Stat()
+	// var size = pemfileinfo.Size()
+	// pembytes := make([]byte, size)
+
+	// buffer := bufio.NewReader(privateKeyFile)
+	// _, err = buffer.Read(pembytes)
+
+	data, _ := pem.Decode([]byte(constant.PULSE_PUBLIC_KEY))
+	// privateKeyFile.Close()
+	publicKeyImported, err := x509.ParsePKIXPublicKey(data.Bytes)
 	if err != nil {
 		fmt.Println("Public Key Import Err")
 	}
@@ -167,63 +198,8 @@ func getPublicKey() *rsa.PublicKey {
 	return rsaPub
 }
 
-func (backend *JWTAuthenticationBackend) Authenticate(user model.User) bool {
-
-	// The username and password we want to check
-	//username := "rgunari"
-	username := user.Username
-	password := user.Password
-
-	// bindusername := config.GetEnv(config.MOS_LDAP_USERNAME_PREFIX) + user.Username
-	// bindpassword := user.Password
-	// port, err := strconv.Atoi(config.GetEnv(config.MOS_LDAP_PORT))
-	// if err != nil {
-	// 	logger.LogInfo(fmt.Sprintf("Getting port failed. Error:%s", err.Error()), user.Xid)
-	// }
-
-	// l, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", config.GetEnv(config.MOS_LDAP_URL), port))
-
-	// if err != nil {
-	// 	logger.LogInfo(fmt.Sprintf("Cannot connect to LDAP. Error:%s", err.Error()), user.Xid)
-	// }
-	// defer l.Close()
-
-	// // First bind with a read only user
-	// err = l.Bind(bindusername, bindpassword)
-	// if err != nil {
-	// 	logger.LogInfo(fmt.Sprintf("Invalid LDAP credentials. Error:%s", err.Error()), user.Xid)
-	// }
-
-	// // Search for the given username
-	// searchRequest := ldap.NewSearchRequest(
-	// 	config.GetEnv(config.MOS_LDAP_OU_DC),
-	// 	ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-	// 	fmt.Sprintf("(&(sAMAccountName=%s))", username),
-	// 	[]string{"dn"},
-	// 	nil,
-	// )
-
-	// sr, err := l.Search(searchRequest)
-	// if err != nil {
-	// 	logger.LogInfo(fmt.Sprintf("Cannot search user. Error:%s", err.Error()), user.Xid)
-	// 	return false
-	// }
-
-	// if len(sr.Entries) != 1 {
-	// 	logger.LogInfo(fmt.Sprintf("User does not exist or too many entries:%s", sr.Entries[0]), user.Xid)
-	// 	return false
-	// }
-
-	// userdn := sr.Entries[0].DN
-	// // Bind as the user to verify their password
-	// err = l.Bind(userdn, password)
-	// if err != nil {
-	// 	logger.LogInfo(fmt.Sprintf("Invalid password for user:%s   Error:%d", bindusername, err.Error()), user.Xid)
-	// 	return false
-	// }
-
+func (backend *JWTAuthenticationBackend) Authenticate(user model.AuthenticateUser) bool {
 	return true
-
 }
 
 //Authorize is the method the wraps a handlerfunc to serverhttp
@@ -242,7 +218,7 @@ func Authorize(pass common.AppHandlerFunc) common.AppHandlerFunc {
 	}
 }
 
-//Authorize is the method the wraps a handlerfunc to serverhttp
+//AuthorizeWithRole is the method the wraps a handlerfunc to serverhttp
 func AuthorizeWithRole(pass common.AppHandlerFunc, apiRole int) common.AppHandlerFunc {
 
 	return func(ctx *common.AppContext, w http.ResponseWriter, r *http.Request) (int, error) {
@@ -291,6 +267,7 @@ func AnnotateRequestWithAuthorizedUser(w http.ResponseWriter, r *http.Request, a
 	return nil
 }
 
+// GetCurrentUsername
 func GetCurrentUsername(r *http.Request) string {
 	claims := r.Context().Value(constant.Claims)
 	if claims == nil {
@@ -306,6 +283,7 @@ func GetCurrentUsername(r *http.Request) string {
 	return ""
 }
 
+// GetCurrentUserId
 func GetCurrentUserId(r *http.Request) int64 {
 	//	claims, ok := context.GetOk(r, constant.Claims)
 	//	if !ok {
@@ -323,6 +301,7 @@ func GetCurrentUserId(r *http.Request) int64 {
 	return 0
 }
 
+// GetCurrentUserRole
 func GetCurrentUserRole(r *http.Request) string {
 	claims := r.Context().Value(constant.Claims)
 	if claims == nil {
@@ -337,6 +316,7 @@ func GetCurrentUserRole(r *http.Request) string {
 	return ""
 }
 
+// HasPermission
 func HasPermission(r *http.Request, apiRole int) bool {
 
 	roleMapping := map[string]int{
@@ -351,6 +331,7 @@ func HasPermission(r *http.Request, apiRole int) bool {
 	return false
 }
 
+// GetCurrentUser
 func GetCurrentUser(r *http.Request) (string, int64) {
 	username := GetCurrentUsername(r)
 	userid := GetCurrentUserId(r)
@@ -358,6 +339,7 @@ func GetCurrentUser(r *http.Request) (string, int64) {
 	return username, userid
 }
 
+// GetUserInfoFromContext
 func GetUserInfoFromContext(ctx context.Context) (name string, ID int64, role string) {
 	if ctx == nil {
 		return "", 0, ""
@@ -403,9 +385,10 @@ func RoleName(role int) string {
 	return ""
 }
 
+// GetPath
 func GetPath() model.Settings {
 	settings := model.Settings{}
-	tokenexpiration, err := strconv.Atoi(config.GetEnv(config.MOS_TOKEN_TIMEOUT_IN_HOURS))
+	tokenexpiration, err := strconv.Atoi(config.GetEnv(config.PULSE_TOKEN_TIMEOUT_IN_HOURS))
 	if err != nil {
 		tokenexpiration = 72 //user token expirationm time. Machine, we can check in generate token.
 	}

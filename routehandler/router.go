@@ -5,12 +5,11 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"os"
-	"time"
 
 	"github.com/gorilla/mux"
 
 	"github.com/gkewl/pulsecheck/common"
-	"github.com/gkewl/pulsecheck/config"
+//	"github.com/gkewl/pulsecheck/config"
 	"github.com/gkewl/pulsecheck/protocol"
 )
 
@@ -45,11 +44,11 @@ func NewRouter(ctx *common.AppContext, apis common.APIRoutes, subroute string) *
 	router := mux.NewRouter().StrictSlash(true)
 	subrouter := &HTTPRouter{router.PathPrefix(subroute).Subrouter(), map[string]*common.Route{}}
 	pathCheck := map[string]*common.Route{}
-	timeout, err := time.ParseDuration(config.GetEnv(config.MOS_APP_TIMEOUT))
-	if err != nil {
-		fmt.Printf("FATAL ERROR: MOS_APP_TIMEOUT value '%s' could not be parsed\n", config.GetEnv(config.MOS_APP_TIMEOUT))
-		os.Exit(1)
-	}
+	// //timeout, err := time.ParseDuration("60s")
+	// if err != nil {
+	// 	fmt.Printf("FATAL ERROR: MOS_APP_TIMEOUT value '60s' could not be parsed\n")
+	// 	os.Exit(1)
+	// }
 	for _, api := range apis {
 		for i := 0; i < len(api); i++ {
 			route := &api[i]
@@ -82,9 +81,7 @@ func NewRouter(ctx *common.AppContext, apis common.APIRoutes, subroute string) *
 				}
 			}
 			handler = common.RecoverHandler(handler)
-			if !route.Streaming {
-				handler = http.TimeoutHandler(handler, timeout, "Request timed out")
-			}
+			
 			subrouter.
 				Methods(route.Method).
 				Path(route.Pattern).

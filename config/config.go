@@ -27,6 +27,9 @@ const (
 	PULSE_DB_CONN_LIFETIME   = "PULSE_DB_CONN_LIFETIME"
 )
 
+const PULSE_PRIVATE_KEY_FILEPATH = "PULSE_PRIVATE_KEY_FILEPATH"
+const PULSE_PUBLIC_KEY_FILEPATH = "PULSE_PUBLIC_KEY_FILEPATH"
+
 const hostname = "__hostname__"
 
 var configMap map[string]string
@@ -45,31 +48,35 @@ func LoadConfigurations() {
 			configMap[hostname] = "localhost"
 		}
 
-		setConfigValue(PULSE_APP_TIMEOUT)
-		setConfigValue(PULSE_PRIVATE_KEY_SECRET)
-		setConfigValue(PULSE_PUBLIC_KEY_SECRET)
-		setConfigValue(PULSE_CLIENT_TIMEOUT)
-		setConfigValue(PULSE_TOKEN_TIMEOUT_IN_HOURS)
+		setConfigValue(PULSE_PRIVATE_KEY_FILEPATH)
+		setConfigValue(PULSE_PUBLIC_KEY_FILEPATH)
 
-		setConfigValue(PULSE_DB_PASSWORD_SECRET)
-		setConfigValue(PULSE_DB_TYPE)
-		setConfigValue(PULSE_DB_TIMEOUT)
-		setConfigValue(PULSE_DB_USER)
-		setConfigValue(PULSE_DB_NET_PROTOCOL)
-		setConfigValue(PULSE_DB_ADDRESS)
-		setConfigValue(PULSE_DB_DBNAME)
-		setConfigValue(PULSE_DB_MAX_IDLE_CONNS)
-		setConfigValue(PULSE_DB_MAX_OPEN_CONNS)
-		setConfigValue(PULSE_DB_CONN_LIFETIME)
+		// setConfigValue(PULSE_APP_TIMEOUT)
+		// setConfigValue(PULSE_PRIVATE_KEY_SECRET)
+		// setConfigValue(PULSE_PUBLIC_KEY_SECRET)
+		// setConfigValue(PULSE_CLIENT_TIMEOUT)
+		// setConfigValue(PULSE_TOKEN_TIMEOUT_IN_HOURS)
+
+		// setConfigValue(PULSE_DB_PASSWORD_SECRET)
+		// setConfigValue(PULSE_DB_TYPE)
+		// setConfigValue(PULSE_DB_TIMEOUT)
+		// setConfigValue(PULSE_DB_USER)
+		// setConfigValue(PULSE_DB_NET_PROTOCOL)
+		// setConfigValue(PULSE_DB_ADDRESS)
+		// setConfigValue(PULSE_DB_DBNAME)
+		// setConfigValue(PULSE_DB_MAX_IDLE_CONNS)
+		// setConfigValue(PULSE_DB_MAX_OPEN_CONNS)
+		// setConfigValue(PULSE_DB_CONN_LIFETIME)
 
 		if len(missingKeys) > 0 {
 			// Do NOT proceed to start the app if any required config vars are unset.
 			fmt.Println("Missing Environment Variables: " + strings.Join(missingKeys[:], ", "))
-			panic("Missing Environment Variables: " + strings.Join(missingKeys[:], ", "))
+			//	panic("Missing Environment Variables: " + strings.Join(missingKeys[:], ", "))
 
 		} else {
-			initialized = true
+
 		}
+		initialized = true
 	}
 }
 

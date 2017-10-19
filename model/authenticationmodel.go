@@ -4,16 +4,10 @@ import (
 	"gopkg.in/guregu/null.v3"
 )
 
-type User struct {
-	Username string `json:"username"`
+type AuthenticateUser struct {
+	Email    string `json:"email"`
 	Password string `json:"password"`
-	Xid      string
-}
-
-type Machine struct {
-	Actorid     string `DB:"actorid" json:"actorid"`
-	MachineName string `DB:"name" json:"machinename"`
-	ActorType   string `DB:"type" json:"actortype"`
+	Xid      string 
 }
 
 type TokenInfo struct {
@@ -33,8 +27,14 @@ type UserDetail struct {
 }
 
 type RoleInfo struct {
-	Actorid int64       `db:"actorid"`
-	Role    null.String `db:"role"`
+	UserID int       `db:"userid"`
+	Email  null.String `db:"email"`
+}
+
+type UserCompany struct {
+	UserID    int    `db:"userid" json:"userid"`
+	CompanyID int    `db:"companyid" json:"companyid"`
+	Role      string `db:"role" json:"role"`
 }
 
 type UserDetailResponse struct {

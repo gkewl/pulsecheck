@@ -31,25 +31,10 @@ var _ = Describe("utility tests", func() {
 		Expect(utilities.ContainsCI("MYTEST", "foo")).To(BeFalse())
 	})
 
-	It("removes label prefix", func() {
-		Expect(utilities.RemoveLabelPrefix("foo")).To(Equal("foo"))
-		Expect(utilities.RemoveLabelPrefix("1Jfoo")).To(Equal("foo"))
-		Expect(utilities.RemoveLabelPrefix("5jfoo")).To(Equal("foo"))
-		Expect(utilities.RemoveLabelPrefix("6Jfoo")).To(Equal("foo"))
-	})
-
 	It("tests blank", func() {
 		Expect(utilities.Blank("")).To(BeTrue())
 		Expect(utilities.Blank("   ")).To(BeTrue())
 		Expect(utilities.Blank("foo")).To(BeFalse())
-	})
-
-	It("removes orientation tag", func() {
-		Expect(utilities.TagWithoutOrientation("foo")).To(Equal("foo"))
-		Expect(utilities.TagWithoutOrientation("fooa")).To(Equal("foo"))
-		Expect(utilities.TagWithoutOrientation("fooA")).To(Equal("foo"))
-		Expect(utilities.TagWithoutOrientation("foo:ZB")).To(Equal("foo"))
-		Expect(utilities.TagWithoutOrientation("foo:zc")).To(Equal("foo"))
 	})
 
 	It("confirms values in slice", func() {

@@ -15,6 +15,7 @@ import (
 
 	auth "github.com/gkewl/pulsecheck/authentication"
 	"github.com/gkewl/pulsecheck/common"
+	"github.com/gkewl/pulsecheck/model"
 )
 
 // HTTPTestCaller implements the TestCaller interface for making HTTP requests
@@ -64,7 +65,7 @@ func (c *HTTPTestCaller) MakeTestCall(config *TestConfig) (responseBody string) 
 	// set up authentication
 
 	authBackend := auth.InitJWTAuthenticationBackend()
-	token, _ := authBackend.GenerateToken("sspade", 1, "USER", auth.RoleName(config.AuthLevel))
+	token, _ := authBackend.GenerateToken("rgunari@gmail.com", model.UserCompany{UserID: 1, CompanyID: 1}, "USER")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %v", token.Token))
 
 	response, err := http.DefaultClient.Do(request)
