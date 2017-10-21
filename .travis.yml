@@ -1,17 +1,21 @@
 sudo: required
+install: true
 language: go
 go:
-  - 1.8.x
-install:
-  - go get github.com/dgrijalva/jwt-go
+  - 1.8
+  - master
 deploy:
   provider: gae
   project: pulsecheck-167520
   keyfile: gce.json
   verbosity: debug
-  on: master
 before_install:
 - openssl aes-256-cbc -K $encrypted_6951afb58799_key -iv $encrypted_6951afb58799_iv
   -in gce.json.enc -out gce.json -d
+script: go test ./...
+jobs:
+  fast_finish: true
+  allow_failures:
+    - go: master
 notifications:
     slack: pulzchk:aUgiBENZweh7SFQofckYcabh
