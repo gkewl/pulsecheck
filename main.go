@@ -58,7 +58,7 @@ func main() {
 	ctx.Db, err = dbhandler.CreateConnection()
 	if err != nil {
 		// ------ JUST GO PANIC ------
-		panic("Failed to connected to database: %s mysql ")
+		panic("Failed to connect to database: %s mysql ")
 	} else {
 		fmt.Println("Connected to database: mysql ")
 	}
@@ -93,8 +93,11 @@ func main() {
 		}
 	} else {
 		httpServer = &http.Server{
-			Addr:           ":8080",
-			Handler:        router,
+			Addr: ":8080",
+			Handler: handlers.CORS(
+				handlers.AllowedOrigins([]string{"http://localhost:8080", "*"}),
+				handlers.AllowedHeaders([]string{"Authorization"}),
+				handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE"}))(router),
 			ReadTimeout:    timeout,
 			WriteTimeout:   timeout,
 			MaxHeaderBytes: 1 << 20,
