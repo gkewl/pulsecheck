@@ -77,7 +77,7 @@ func main() {
 	//Initialize concrete instances
 	//Initialize()
 
-	env := "DEV"
+	env := "PRD"
 	timeout, _ := time.ParseDuration("60s")
 	var httpServer *http.Server
 	if env == "DEV" {
