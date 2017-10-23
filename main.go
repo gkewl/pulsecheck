@@ -82,9 +82,9 @@ func main() {
 	var httpServer *http.Server
 	if env == "DEV" {
 		httpServer = &http.Server{
-			Addr: ":1025",
+			Addr: ":8080",
 			Handler: handlers.CORS(
-				handlers.AllowedOrigins([]string{"http://localhost:8080", "*"}),
+				handlers.AllowedOrigins([]string{"*"}),
 				handlers.AllowedHeaders([]string{"Authorization"}),
 				handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE"}))(router),
 			ReadTimeout:    timeout,
@@ -95,9 +95,9 @@ func main() {
 		httpServer = &http.Server{
 			Addr: ":8080",
 			Handler: handlers.CORS(
-				handlers.AllowedOrigins([]string{"http://localhost:8080", "*"}),
-				handlers.AllowedHeaders([]string{"Authorization"}),
-				handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE"}))(router),
+				handlers.AllowedOrigins([]string{"*"}),
+				handlers.AllowedHeaders([]string{"Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"}),
+				handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"}))(router),
 			ReadTimeout:    timeout,
 			WriteTimeout:   timeout,
 			MaxHeaderBytes: 1 << 20,
