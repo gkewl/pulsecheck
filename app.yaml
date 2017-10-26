@@ -2,8 +2,5 @@ runtime: go
 api_version: go1
 env: flex
 skip_files: /.txt$
-handlers:
-  - url: /.*
-    script: _go_app
-    http_headers:
-      Access-Control-Allow-Origin: '*'
+
+    

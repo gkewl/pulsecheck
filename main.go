@@ -96,7 +96,7 @@ func main() {
 			Addr: ":8080",
 			Handler: handlers.CORS(
 				handlers.AllowedOrigins([]string{"*"}),
-				handlers.AllowedHeaders([]string{"Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization"}),
+				handlers.AllowedHeaders([]string{"Authorization", "Access-Control-Allow-Headers"}),
 				handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"}))(router),
 			ReadTimeout:    timeout,
 			WriteTimeout:   timeout,
