@@ -77,7 +77,7 @@ func main() {
 	//Initialize concrete instances
 	//Initialize()
 
-	env := "PRD"
+	env := "DEV"
 	timeout, _ := time.ParseDuration("60s")
 	var httpServer *http.Server
 	if env == "DEV" {
@@ -85,8 +85,8 @@ func main() {
 			Addr: ":8080",
 			Handler: handlers.CORS(
 				handlers.AllowedOrigins([]string{"*"}),
-				handlers.AllowedHeaders([]string{"Authorization"}),
-				handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE"}))(router),
+				handlers.AllowedHeaders([]string{"Authorization", "Origin", "Content-Type", "X-Auth-Token"}),
+				handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"}))(router),
 			ReadTimeout:    timeout,
 			WriteTimeout:   timeout,
 			MaxHeaderBytes: 1 << 20,
