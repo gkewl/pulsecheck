@@ -10,10 +10,10 @@ deploy:
   verbosity: debug
   skip_cleanup: true
 before_install:
-- openssl aes-256-cbc -K $encrypted_6951afb58799_key -iv $encrypted_6951afb58799_iv
-  -in gce.json.enc -out gce.json -d
+  - go get -v github.com/gorilla/context
+  - openssl aes-256-cbc -K $encrypted_6951afb58799_key -iv $encrypted_6951afb58799_iv
+     -in gce.json.enc -out gce.json -d
 script: go test 
-
 jobs:
   fast_finish: true 
 notifications:
