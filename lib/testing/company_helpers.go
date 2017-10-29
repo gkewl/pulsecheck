@@ -6,7 +6,18 @@ import (
 
 	"github.com/gkewl/pulsecheck/apis/company"
 	"github.com/gkewl/pulsecheck/model"
+	"github.com/gkewl/pulsecheck/utilities"
 )
+
+// sampleCompany constructs a company
+func (t *T) SampleCompany() (comp model.Company) {
+	return model.Company{
+		Name:       "UT_comp_" + utilities.GenerateRandomString(8),
+		IsActive:   true,
+		CreatedBy:  "admin",
+		ModifiedBy: "admin",
+	}
+}
 
 // Company expects a company and an error and verifies the error is nil
 // and returns the company

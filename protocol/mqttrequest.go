@@ -40,7 +40,7 @@ func NewMQTTRequestContext(appCtx *common.AppContext, topic, payload string) (mr
 	mrc.MaxDeadlockRetries = constant.MaxDeadlockRetries
 	token := mrc.Token()
 	if token != "" {
-		mrc.Username, mrc.Userid, mrc.Userrole = auth.GetUserInfoFromToken(token)
+		mrc.Username, mrc.Userid, mrc.Userrole, mrc.Companyid = auth.GetUserInfoFromToken(token)
 	} else {
 		mrc.Userrole = auth.RoleName(constant.Guest)
 	}
