@@ -81,3 +81,18 @@ var (
 	ErrAuthUserUpdate       = newNamedError(1203, "Update authuser failed", http.StatusConflict)
 	ErrAuthUserDelete       = newNamedError(1204, "AuthUser  delete failed", http.StatusConflict)
 )
+var (
+	ErrUserInsert       = newNamedError(1301, "User Inserting entity to database failed", http.StatusConflict)
+	ErrUserDataNotFound = newNamedError(1302, "User Data not found", http.StatusNotFound)
+	ErrUserUpdate       = newNamedError(1303, "Update User failed", http.StatusConflict)
+	ErrUserDelete       = newNamedError(1304, "User delete failed", http.StatusConflict)
+)
+
+var (
+	ErrEmployeeInsert       = newNamedError(1401, "Employee Inserting entity to database failed", http.StatusConflict)
+	ErrEmployeeDataNotFound = newNamedError(1402, "Employee Data not found", http.StatusNotFound)
+	ErrEmployeeUpdate       = newNamedError(1403, "Update Employee failed", http.StatusConflict)
+	ErrEmployeeDelete       = newNamedError(1404, "Employee delete failed", http.StatusConflict)
+	ErrEmployeeUpload       = newNamedError(1405, "Employee upload  failed", http.StatusConflict)
+	ErrEmployeeSearch       = newNamedError(1406, "Employee search  failed", http.StatusConflict)
+)

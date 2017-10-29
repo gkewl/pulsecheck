@@ -18,7 +18,7 @@ const (
 
 //define commn constant here
 const UserName = "Actorname"
-const UserId = "ActorId"
+const UserId = "UserId"
 const Claims = "Claims"
 
 const Xid = "Xid"
@@ -43,6 +43,7 @@ const DefaultApplicationRole = "Guest"
 
 const (
 	Guest = iota
+	User
 	Superuser
 	Admin
 )

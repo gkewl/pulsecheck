@@ -30,6 +30,7 @@ import (
 // define global map; initialize as empty with the trailing {}
 var roleMapping = map[string]int{
 	"Guest":     constant.Guest,
+	"User":      constant.User,
 	"Superuser": constant.Superuser,
 	"Admin":     constant.Admin,
 }
@@ -77,7 +78,7 @@ func RequireTokenAuthentication(rw http.ResponseWriter, req *http.Request) (map[
 }
 
 // GetUserInfoFromToken parses the raw token and returns user info
-func GetUserInfoFromToken(tokenStr string) (username string, actorid int64, role string) {
+func GetUserInfoFromToken(tokenStr string) (username string, actorid int, role string, companyid int) {
 	authBackend := InitJWTAuthenticationBackend()
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		return authBackend.PublicKey, nil
@@ -85,8 +86,10 @@ func GetUserInfoFromToken(tokenStr string) (username string, actorid int64, role
 	if err == nil {
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
 			username = claims["sub"].(string)
-			actorid = int64(claims["userid"].(float64))
-			//role = claims["scopes"].(string)
+			actorid = int(claims["userid"].(float64))
+			role = claims["scope"].(string)
+			companyid = int(claims["companyid"].(float64))
+
 		}
 	}
 	return
@@ -229,7 +232,7 @@ func AuthorizeWithRole(pass common.AppHandlerFunc, apiRole int) common.AppHandle
 		}
 
 		//validate role
-		if role, ok := claims["scopes"].(string); ok {
+		if role, ok := claims["scope"].(string); ok {
 			if roleMapping[role] >= apiRole {
 				//context.Set(r, constant.Claims, claims)
 				goCtx := context.WithValue(r.Context(), constant.Claims, claims)
@@ -253,7 +256,7 @@ func AnnotateRequestWithAuthorizedUser(w http.ResponseWriter, r *http.Request, a
 	claims, err := RequireTokenAuthentication(w, r)
 	if err == nil {
 		//validate role
-		if role, ok := claims["scopes"].(string); ok {
+		if role, ok := claims["scope"].(string); ok {
 			if roleMapping[role] >= apiRole {
 				goCtx := context.WithValue(r.Context(), constant.Claims, claims)
 				return r.WithContext(goCtx)
@@ -295,7 +298,7 @@ func GetCurrentUserId(r *http.Request) int64 {
 	}
 	//get map from interface
 	claimMap := claims.(map[string]interface{})
-	if id, ok := claimMap["actorid"].(float64); ok {
+	if id, ok := claimMap["userid"].(float64); ok {
 		return int64(id)
 	}
 	return 0
@@ -310,7 +313,7 @@ func GetCurrentUserRole(r *http.Request) string {
 
 	//get map from interface
 	claimMap := claims.(map[string]interface{})
-	if role, ok := claimMap["scopes"].(string); ok {
+	if role, ok := claimMap["scope"].(string); ok {
 		return role
 	}
 	return ""
@@ -340,28 +343,34 @@ func GetCurrentUser(r *http.Request) (string, int64) {
 }
 
 // GetUserInfoFromContext
-func GetUserInfoFromContext(ctx context.Context) (name string, ID int64, role string) {
+func GetUserInfoFromContext(ctx context.Context) (name string, ID int, role string, companyid int) {
 	if ctx == nil {
-		return "", 0, ""
+		return "", 0, "", 0
 	}
 	claims := ctx.Value(constant.Claims)
 	if claims == nil {
-		return "", 0, ""
+		return "", 0, "", 0
 	}
 	// get map from interface
 	var ok bool
 	claimMap := claims.(map[string]interface{})
-	if fid, ok := claimMap["actorid"].(float64); !ok {
-		return "", 0, ""
+	if fid, ok := claimMap["userid"].(float64); !ok {
+		return "", 0, "", 0
 	} else {
-		ID = int64(fid)
+		ID = int(fid)
 	}
 	if name, ok = claimMap["sub"].(string); !ok {
-		return "", 0, ""
+		return "", 0, "", 0
 	}
-	if role, ok = claimMap["scopes"].(string); !ok {
-		return "", 0, ""
+	if role, ok = claimMap["scope"].(string); !ok {
+		return "", 0, "", 0
 	}
+	if cid, ok := claimMap["companyid"].(float64); !ok {
+		return "", 0, "", 0
+	} else {
+		companyid = int(cid)
+	}
+
 	return
 }
 
@@ -390,7 +399,7 @@ func GetPath() model.Settings {
 	settings := model.Settings{}
 	tokenexpiration, err := strconv.Atoi(config.GetEnv(config.PULSE_TOKEN_TIMEOUT_IN_HOURS))
 	if err != nil {
-		tokenexpiration = 72 //user token expirationm time. Machine, we can check in generate token.
+		tokenexpiration = 24 //user token expirationm time. Machine, we can check in generate token.
 	}
 	settings.JWTExpirationDelta = tokenexpiration
 

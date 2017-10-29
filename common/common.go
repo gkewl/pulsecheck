@@ -87,12 +87,10 @@ type PublishRequest struct {
 type RequestContext interface {
 	AppContext() *AppContext
 	GetContext() context.Context
-	UserID() int64
+	UserID() int
 	UserName() string
 	UserRole() string
-	ActorID() int64
-	ActorName() string
-	SetActor(int64, string)
+	CompanyID() int
 	Tx() *sqlx.Tx
 	Xid() string
 	Value(name string, defValue string) string           // string request parameter
@@ -111,7 +109,7 @@ type RequestContext interface {
 	BumpDeadlocks() bool     // increment deadlock count
 	DeadlockRetryCount() int // how many deadlocks occurred
 	Token() string
-	SetUserId(int64)
+	SetUserId(int)
 	SetIsRawResponse(bool, string)
 }
 
@@ -120,11 +118,10 @@ type RequestContextBase struct {
 	CancelFunc         context.CancelFunc
 	AppCtx             *AppContext
 	Txn                *sqlx.Tx
-	Userid             int64
+	Userid             int
 	Username           string
+	Companyid          int
 	Userrole           string
-	Actorid            int64
-	Actorname          string
 	Xnid               string
 	logValues          map[string]interface{}
 	MaxDeadlockRetries int
@@ -155,7 +152,7 @@ func (rc *RequestContextBase) Tx() *sqlx.Tx {
 }
 
 // UserId returns the authenticated user db id
-func (rc *RequestContextBase) UserID() int64 {
+func (rc *RequestContextBase) UserID() int {
 	return rc.Userid
 }
 
@@ -169,24 +166,13 @@ func (rc *RequestContextBase) UserRole() string {
 	return rc.Userrole
 }
 
-// ActorID returns the actor ID for this request
-func (rc *RequestContextBase) ActorID() int64 {
-	return rc.Actorid
-}
-
-// ActorName returns the actor name for this request
-func (rc *RequestContextBase) ActorName() string {
-	return rc.Actorname
-}
-
-// SetActor sets the actor info for this request
-func (rc *RequestContextBase) SetActor(id int64, name string) {
-	rc.Actorid = id
-	rc.Actorname = name
+// CompanyID returns the authenticated users company id
+func (rc *RequestContextBase) CompanyID() int {
+	return rc.Companyid
 }
 
 // SetUserId sets the UserId info for this request
-func (rc *RequestContextBase) SetUserId(id int64) {
+func (rc *RequestContextBase) SetUserId(id int) {
 	rc.Userid = id
 }
 
