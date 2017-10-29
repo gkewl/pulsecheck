@@ -195,6 +195,18 @@ func ParseStringtoTime(v string) (time.Time, error) {
 	return time.Parse(time.RFC3339, v)
 }
 
+const dateFormat = "2006-01-02" // yyyy-mm-dd
+
+// ParseStringToDate -
+func ParseStringToDate(val string) (time.Time, error) {
+	return time.Parse(dateFormat, val)
+}
+
+// ParseDateToString -
+func ParseDateToString(t time.Time) string {
+	return t.Format(dateFormat)
+}
+
 // ParseStringtoFloat64 -
 func ParseStringtoFloat64(v string) (float64, error) {
 	f, err := strconv.ParseFloat(v, 64)

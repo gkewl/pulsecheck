@@ -20,9 +20,9 @@ import (
 func CreateConnection() (*sqlx.DB, error) {
 
 	dbConfig := &Config{
-		User:      "pulse",              //"root",
-		Passwd:    "pulsecheck",         //"divith",
-		Addr:      "23.236.60.151:3306", //"10.128.0.5:3306", //"localhost:3306",
+		User:      "pulse",           //"root",
+		Passwd:    "pulsecheck",      //"divith",
+		Addr:      "10.128.0.5:3306", //"23.236.60.151:3306", //"10.128.0.5:3306", //"localhost:3306",
 		Net:       "tcp",
 		DBName:    "pulsecheck",
 		Collation: "utf8_unicode_ci",

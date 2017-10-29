@@ -65,7 +65,7 @@ func (c *HTTPTestCaller) MakeTestCall(config *TestConfig) (responseBody string) 
 	// set up authentication
 
 	authBackend := auth.InitJWTAuthenticationBackend()
-	token, _ := authBackend.GenerateToken("rgunari@gmail.com", model.UserCompany{UserID: 1, CompanyID: 1}, "USER")
+	token, _ := authBackend.GenerateToken("test@email.com", model.UserCompany{UserID: 1, CompanyID: 1, Role: auth.RoleName(config.AuthLevel)}, "USER")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %v", token.Token))
 
 	response, err := http.DefaultClient.Do(request)

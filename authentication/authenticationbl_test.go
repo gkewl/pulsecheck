@@ -7,9 +7,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/gkewl/pulsecheck/apis/authuser"
+	"github.com/gkewl/pulsecheck/apis/user"
 	"github.com/gkewl/pulsecheck/authentication"
 
 	"github.com/gkewl/pulsecheck/errorhandler"
+	tst "github.com/gkewl/pulsecheck/lib/testing"
 	"github.com/gkewl/pulsecheck/model"
 	"github.com/gkewl/pulsecheck/protocol"
 )
@@ -37,10 +39,14 @@ var _ = Describe("Authentication Business Logic Tests", func() {
 	var reqCtx *protocol.TestRequestContext
 	var logic = authentication.BLAuthentication{}
 	var empToken = "testtokenthatfails"
+	var t tst.T
+
 	BeforeEach(func() {
 		reqCtx = &protocol.TestRequestContext{Userid: 1, Username: "admin"}
 		reqCtx.AppContext()
 		authuser.TestingBizLogic = &authuser.MockBLAuthUser{}
+		t = tst.T{ReqCtx: reqCtx}
+
 	})
 	AfterEach(func() {
 		reqCtx.Complete(false)
@@ -48,7 +54,16 @@ var _ = Describe("Authentication Business Logic Tests", func() {
 
 	It("Login Authentication", func() {
 
-		output, err := logic.LoginUser(reqCtx, sampleuser())
+		newUser := t.SampleUser()
+		//create user
+		usr := t.User(user.BLUser{}.Create(reqCtx, newUser))
+
+		input := model.AuthenticateUser{
+			Email:    usr.Email,
+			Password: newUser.Password,
+		}
+
+		output, err := logic.LoginUser(reqCtx, input)
 		Expect(err).To(BeNil())
 		Expect(len(output.Token)).To(BeNumerically(">", 0))
 		Expect(output.Exp).To(BeNumerically(">", 0))

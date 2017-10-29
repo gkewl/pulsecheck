@@ -97,7 +97,7 @@ func NewHTTPRequestContext(appCtx *common.AppContext, r *http.Request) (hrc HTTP
 
 	hrc.MaxDeadlockRetries = constant.MaxDeadlockRetries
 	hrc.Xnid, _ = r.Context().Value(constant.Xid).(string)
-	hrc.Username, hrc.Userid, hrc.Userrole = auth.GetUserInfoFromContext(r.Context())
+	hrc.Username, hrc.Userid, hrc.Userrole, hrc.Companyid = auth.GetUserInfoFromContext(r.Context())
 	hrc.AppCtx = appCtx
 	hrc.r = r
 	hrc.urlVars = mux.Vars(r)

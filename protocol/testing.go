@@ -61,7 +61,7 @@ func MakeTestConfig(action string, authLevel int, expectedStatus int, expectedEr
 type TestRequestContext struct {
 	common.RequestContextBase
 
-	Userid          int64
+	Userid          int
 	Username        string
 	Userrole        string
 	Actorid         int64
@@ -112,8 +112,8 @@ func (req *TestRequestContext) GetContext() context.Context {
 	claims := make(map[string]interface{})
 	claims["iat"] = time.Now().Unix()
 	claims["sub"] = req.Username
-	claims["actorid"] = float64(req.Userid)
-	claims["scopes"] = req.Userrole
+	claims["userid"] = float64(req.Userid)
+	claims["scope"] = req.Userrole
 	return context.WithValue(context.TODO(), constant.Claims, claims)
 }
 
@@ -123,7 +123,7 @@ func (req *TestRequestContext) ServiceName() string {
 }
 
 // UserID returns user id
-func (req *TestRequestContext) UserID() int64 {
+func (req *TestRequestContext) UserID() int {
 	return req.Userid
 }
 
@@ -152,14 +152,8 @@ func (req *TestRequestContext) Token() string {
 	return ""
 }
 
-// SetActor sets the actor info for this request
-func (req *TestRequestContext) SetActor(id int64, name string) {
-	req.Actorid = id
-	req.Actorname = name
-}
-
 // SetUserId sets the User id for this request
-func (req *TestRequestContext) SetUserId(id int64) {
+func (req *TestRequestContext) SetUserId(id int) {
 	req.Userid = id
 }
 
