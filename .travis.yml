@@ -9,6 +9,11 @@ deploy:
   keyfile: gce.json
   verbosity: debug
   skip_cleanup: true
+env:
+  global:
+    - DBUSER=pulse 
+    - DBPWD=pulsecheck 
+    - DBADDR=23.236.60.151:3306
 before_install:
   - go get -v github.com/gorilla/context
   - openssl aes-256-cbc -K $encrypted_6951afb58799_key -iv $encrypted_6951afb58799_iv

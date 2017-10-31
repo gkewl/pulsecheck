@@ -2,5 +2,9 @@ runtime: go
 api_version: go1
 env: flex
 skip_files: /.txt$
+env_variables:
+  DBUSER: 'pulse'
+  DBPWD: 'pulsecheck'
+  DBADDR: '23.236.60.151:3306'
 
     

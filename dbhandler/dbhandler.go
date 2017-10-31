@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -20,9 +21,9 @@ import (
 func CreateConnection() (*sqlx.DB, error) {
 
 	dbConfig := &Config{
-		User:      "pulse",           //"root",
-		Passwd:    "pulsecheck",      //"divith",
-		Addr:      "10.128.0.5:3306", //"23.236.60.151:3306", //"10.128.0.5:3306", //"localhost:3306",
+		User:      os.Getenv("DBUSER"), //"pulse",           //"root",
+		Passwd:    os.Getenv("DBPWD"),  //"pulsecheck",      //"divith",
+		Addr:      os.Getenv("DBADDR"), //"10.128.0.5:3306", //"23.236.60.151:3306", //"10.128.0.5:3306", //"localhost:3306",
 		Net:       "tcp",
 		DBName:    "pulsecheck",
 		Collation: "utf8_unicode_ci",
