@@ -6,5 +6,8 @@ env_variables:
   DBUSER: 'pulse'
   DBPWD: 'pulsecheck'
   DBADDR: '23.236.60.151:3306'
+  ELASTIC_URL: 'https://aade6f5cd32cedd31ee3a3c61384275f.us-central1.gcp.cloud.es.io:9243'
+  ELASTIC_UNAME: 'elastic'
+  ELASTIC_PWD: 'zcAIW0nyX6AOeBQNGEwFPXaA'
 
     

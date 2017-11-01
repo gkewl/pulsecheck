@@ -14,6 +14,9 @@ env:
     - DBUSER=pulse 
     - DBPWD=pulsecheck 
     - DBADDR=23.236.60.151:3306
+    - ELASTIC_URL=https://aade6f5cd32cedd31ee3a3c61384275f.us-central1.gcp.cloud.es.io:9243
+    - ELASTIC_UNAME=elastic
+    - ELASTIC_PWD=zcAIW0nyX6AOeBQNGEwFPXaA
 before_install:
   - go get -v github.com/gorilla/context
   - openssl aes-256-cbc -K $encrypted_6951afb58799_key -iv $encrypted_6951afb58799_iv
