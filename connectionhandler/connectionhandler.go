@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	//"encoding/json"
+	"os"
 	"fmt"
 	"net/http"
 	//"reflect"
@@ -31,8 +32,10 @@ func CreateElasticConnection() {
 	client, err := elastic.NewClient(
 		elastic.SetHttpClient(c),
 		elastic.SetSniff(false), //this is needed attribute to connect to elastic cloud
-		elastic.SetURL("https://aade6f5cd32cedd31ee3a3c61384275f.us-central1.gcp.cloud.es.io:9243"),
-		elastic.SetBasicAuth("elastic", "zcAIW0nyX6AOeBQNGEwFPXaA"))
+		elastic.SetURL(os.Getenv("ELASTIC_URL")),
+		elastic.SetBasicAuth(os.Getenv("ELASTIC_UNAME"), os.Getenv("ELASTIC_PWD"))
+		//elastic.SetURL("https://aade6f5cd32cedd31ee3a3c61384275f.us-central1.gcp.cloud.es.io:9243"),
+		//elastic.SetBasicAuth("elastic", "zcAIW0nyX6AOeBQNGEwFPXaA"))
 
 	//client, err := elastic.NewClient()
 	if err != nil {
