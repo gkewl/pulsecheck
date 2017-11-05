@@ -15,19 +15,27 @@ type Employee struct {
 	Middlename   null.String `json:"middlename" db:"middlename"`
 	Lastname     string      `json:"lastname" db:"lastname"`
 	Dateofbirth  string      `json:"dateofbirth" `
-	DateofbirthT time.Time   `json:"_" db:"dateofbirtht"`
-	Type       int       `json:"type" db:"type"`
-	IsActive   bool      `json:"isactive" db:"isactive"`
-	CreatedBy  string    `json:"createdby" db:"createdby"`
-	Created    time.Time `json:"created" db:"created"`
-	ModifiedBy string    `json:"modifiedby" db:"modifiedby"`
-	Modified   time.Time `json:"modified" db:"modified"`
+	DateofbirthT time.Time   `json:"-" db:"dateofbirtht"`
+	Type         int         `json:"type" db:"type"`
+	IsActive     bool        `json:"isactive" db:"isactive"`
+	CreatedBy    string      `json:"createdby" db:"createdby"`
+	Created      time.Time   `json:"created" db:"created"`
+	ModifiedBy   string      `json:"modifiedby" db:"modifiedby"`
+	Modified     time.Time   `json:"modified" db:"modified"`
 }
 
 // ToString converts information to string
 func (e *Employee) ToString() string {
 	return fmt.Sprintf("FirstName %s MiddleName %s LastName %s DOB %v CompanyId %d",
 		e.Firstname, e.Middlename.String, e.Lastname, e.Dateofbirth, e.CompanyID)
+}
+
+func (e *Employee) ToOIG() OIGSearch {
+	return OIGSearch{
+		Firstname:  e.Firstname,
+		Middlename: e.Middlename.String,
+		Lastname:   e.Lastname,
+	}
 }
 
 // type Date struct {
