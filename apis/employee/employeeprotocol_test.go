@@ -89,6 +89,14 @@ var _ = Describe("Employee API protocol tests", func() {
 			Expect(body).To(ContainSubstring("foo1"))
 			Expect(body).To(ContainSubstring("foo2"))
 		})
+		It("routes searchstatus", func() {
+			config := protocol.MakeTestConfig("SearchStatus", constant.User, 200, nil, noParams, "emp", fakeEmployee)
+			body := caller.MakeTestCall(config)
+			Expect(body).To(ContainSubstring("foo"))
+			Expect(body).To(ContainSubstring("2017-10-28"))
+			Expect(mockBL.DOB).To(Equal("2017-10-28"))
+
+		})
 
 	}
 	allTests(&httpCaller)

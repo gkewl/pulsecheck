@@ -1,7 +1,6 @@
 package connectionhandler
 
 import (
-	"context"
 	"crypto/tls"
 	//"encoding/json"
 	"fmt"
@@ -12,9 +11,9 @@ import (
 	elastic "gopkg.in/olivere/elastic.v5"
 )
 
-func CreateElasticConnection() {
+func CreateElasticConnection() *elastic.Client {
 	// Starting with elastic.v5, you must pass a context to execute each service
-	ctx := context.Background()
+	//ctx := context.Background()
 
 	// Obtain a client and connect to the default Elasticsearch installation
 	// on 127.0.0.1:9200. Of course you can configure your client to connect
@@ -41,4 +40,5 @@ func CreateElasticConnection() {
 		panic(err)
 	}
 	fmt.Println("connected to elastic")
+	return client
 }
