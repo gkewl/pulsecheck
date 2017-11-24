@@ -11,7 +11,7 @@ import (
 	elastic "gopkg.in/olivere/elastic.v5"
 )
 
-func CreateElasticConnection() *elastic.Client {
+func CreateElasticConnection() (*elastic.Client, error) {
 	// Starting with elastic.v5, you must pass a context to execute each service
 	//ctx := context.Background()
 
@@ -27,18 +27,21 @@ func CreateElasticConnection() *elastic.Client {
 			},
 		},
 	}
+
 	client, err := elastic.NewClient(
 		elastic.SetHttpClient(c),
 		elastic.SetSniff(false), //this is needed attribute to connect to elastic cloud
 		elastic.SetURL("https://aade6f5cd32cedd31ee3a3c61384275f.us-central1.gcp.cloud.es.io:9243"),
 		elastic.SetBasicAuth("elastic", "zcAIW0nyX6AOeBQNGEwFPXaA"))
+	//elastic.SetURL("http://localhost:9200"))
 
 	//client, err := elastic.NewClient()
 	if err != nil {
 		// Handle error
 		fmt.Println("failed to connect to Elastic")
-		panic(err)
+		//	panic(err)
+		return nil, err
 	}
 	fmt.Println("connected to elastic")
-	return client
+	return client, nil
 }

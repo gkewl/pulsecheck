@@ -22,19 +22,23 @@ type Employee struct {
 	Created      time.Time   `json:"created" db:"created"`
 	ModifiedBy   string      `json:"modifiedby" db:"modifiedby"`
 	Modified     time.Time   `json:"modified" db:"modified"`
+	Consider     bool        `json:"consider" db:"consider"`
 }
 
 // ToString converts information to string
 func (e *Employee) ToString() string {
-	return fmt.Sprintf("FirstName %s MiddleName %s LastName %s DOB %v CompanyId %d",
+	return fmt.Sprintf("FirstName %s MiddleName %s LastName %s Dateofbirth %v CompanyId %d",
 		e.Firstname, e.Middlename.String, e.Lastname, e.Dateofbirth, e.CompanyID)
 }
 
+// ToOIG -
 func (e *Employee) ToOIG() OIGSearch {
 	return OIGSearch{
-		Firstname:  e.Firstname,
-		Middlename: e.Middlename.String,
-		Lastname:   e.Lastname,
+		UniqueUser:  e.Firstname + "_" + e.Lastname + "_" + e.Dateofbirth,
+		Firstname:   e.Firstname,
+		Middlename:  e.Middlename.String,
+		Lastname:    e.Lastname,
+		DateOfBirth: e.Dateofbirth,
 	}
 }
 

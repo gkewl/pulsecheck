@@ -2,11 +2,7 @@ package common
 
 import (
 	"context"
-	//"encoding/json"
 	"fmt"
-
-	"github.com/gkewl/pulsecheck/constant"
-	"github.com/gkewl/pulsecheck/logger"
 
 	"io"
 	"io/ioutil"
@@ -17,8 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gkewl/pulsecheck/xid"
 	"github.com/jmoiron/sqlx"
+	elastic "gopkg.in/olivere/elastic.v5"
+
+	"github.com/gkewl/pulsecheck/constant"
+	"github.com/gkewl/pulsecheck/logger"
+	"github.com/gkewl/pulsecheck/xid"
 )
 
 //this interface is used for every class which can be
@@ -65,6 +65,7 @@ type AppContext struct {
 	Context       context.Context
 	CancelFunc    context.CancelFunc
 	Db            *sqlx.DB
+	Ec            *elastic.Client
 	MQTTPublisher MQTTPub
 	Version       string
 	BuildTime     string
