@@ -17,6 +17,7 @@ import (
 	"github.com/gkewl/pulsecheck/common"
 	"github.com/gkewl/pulsecheck/config"
 	//	"github.com/gkewl/pulsecheck/constant"
+	"github.com/gkewl/pulsecheck/connectionhandler"
 	"github.com/gkewl/pulsecheck/dbhandler"
 	eh "github.com/gkewl/pulsecheck/errorhandler"
 	"github.com/gkewl/pulsecheck/routehandler"
@@ -61,6 +62,13 @@ func main() {
 		panic("Failed to connect to database: %s mysql ")
 	} else {
 		fmt.Println("Connected to database: mysql ")
+	}
+	ctx.Ec, err = connectionhandler.CreateElasticConnection()
+	if err != nil {
+		// ------ JUST GO PANIC ------
+		panic(fmt.Sprintf("Failed to connect to elastic search. Error %s  ", err.Error()))
+	} else {
+		fmt.Println("Connected to Elastic search ... ")
 	}
 
 	log.Formatter = new(logrus.JSONFormatter)

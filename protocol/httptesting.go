@@ -58,7 +58,9 @@ func (c *HTTPTestCaller) MakeTestCall(config *TestConfig) (responseBody string) 
 	for _, p := range remaining {
 		urlParams = append(urlParams, fmt.Sprintf("%s=%s", p, url.QueryEscape(config.Params[p])))
 	}
-	request, err := http.NewRequest(route.Method, fmt.Sprintf("%s%s?%s", c.BaseURL, path, strings.Join(urlParams, "&")), reader)
+	url := fmt.Sprintf("%s%s?%s", c.BaseURL, path, strings.Join(urlParams, "&"))
+	//fmt.Println("Url :", url)
+	request, err := http.NewRequest(route.Method, url, reader)
 	Expect(err).To(BeNil())
 	request.Header.Set("Content-type", "application/json")
 

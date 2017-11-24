@@ -48,7 +48,7 @@ func dlCreate(reqCtx common.RequestContext, comp model.Company) (model.Company, 
 
 	if err == nil {
 		id, _ := result.LastInsertId()
-		return dlGet(reqCtx, id)
+		return dlGet(reqCtx, int(id))
 	}
 
 	return comp, err

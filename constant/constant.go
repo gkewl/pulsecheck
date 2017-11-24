@@ -53,3 +53,9 @@ const SearchLimit = 50
 
 //MaxPageSize is the maximum page size for server-side paging
 const MaxPageSize = 5000
+
+const (
+	Source_OIG = "OIG"
+	Source_SAM = "SAM"
+	Source_OFAC = "OFAC"
+)
