@@ -14,8 +14,10 @@ const (
 emp.middlename as middlename, emp.lastname as lastname,
 emp.dateofbirth as dateofbirtht, emp.type as type, emp.isactive as
 isactive, emp.createdby as createdby, emp.created as created,
-emp.modifiedby as modifiedby, emp.modified as modified from employee
-emp`
+emp.modifiedby as modifiedby, emp.modified as modified , es.consider consider
+from employee emp  
+join employeestatus es on es.employeeid = emp.id
+`
 )
 
 // dlGet retrieves the specified employee
@@ -144,9 +146,9 @@ func dlSearch(reqCtx common.RequestContext, term string, limit int64) ([]model.E
 // dlExists retrieves the specified employee
 func dlExists(reqCtx common.RequestContext, emp model.Employee) (empOutput model.Employee, err error) {
 	query := getQuery + ` where emp.firstname = ? and emp.lastname = ?
-						  and emp.middlename=? and emp.dateofbirth=? and emp.companyid=?	
+						  and  emp.dateofbirth=? and emp.companyid=?	
 							`
 	err = reqCtx.Tx().Get(&empOutput, query, emp.Firstname, emp.Lastname,
-		emp.Middlename, emp.DateofbirthT, emp.CompanyID)
+		emp.DateofbirthT, emp.CompanyID)
 	return
 }

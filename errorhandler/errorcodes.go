@@ -96,3 +96,14 @@ var (
 	ErrEmployeeUpload       = newNamedError(1405, "Employee upload  failed", http.StatusConflict)
 	ErrEmployeeSearch       = newNamedError(1406, "Employee search  failed", http.StatusConflict)
 )
+
+var (
+	ErrEmployeeStatusInsert       = newNamedError(1501, "EmployeeStatus Inserting entity to database failed", http.StatusConflict)
+	ErrEmployeeStatusDataNotFound = newNamedError(1502, "EmployeeStatus Data not found", http.StatusNotFound)
+	ErrEmployeeStatusUpdate       = newNamedError(1503, "Update EmployeeStatus failed", http.StatusConflict)
+	ErrEmployeeStatusDelete       = newNamedError(1504, "EmployeeStatus delete failed", http.StatusConflict)
+)
+
+var (
+	ErrElasticSearchNotImplemented = newNamedError(1601, "EmployeeSearch not supported at this time.", http.StatusConflict)
+)

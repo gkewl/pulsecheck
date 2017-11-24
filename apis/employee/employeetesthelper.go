@@ -57,5 +57,6 @@ func (bl *MockBLEmployee) Upload(reqCtx common.RequestContext, employees []model
 }
 
 func (bl *MockBLEmployee) SearchStatus(reqCtx common.RequestContext, emp model.Employee) (model.Employee, error) {
+	bl.DOB = emp.Dateofbirth
 	return emp, bl.Err
 }

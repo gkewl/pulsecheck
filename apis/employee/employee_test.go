@@ -4,6 +4,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gkewl/pulsecheck/connectionhandler"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -48,6 +50,7 @@ func init() {
 
 	ctx := common.AppContext{}
 	ctx.Db, _ = dbhandler.CreateConnection()
+	ctx.Ec, _ = connectionhandler.CreateElasticConnection()
 
 	router = routehandler.NewRouter(&ctx, apis, "/api/v1")
 	server = httptest.NewServer(router) //Creating new server with the user handlers

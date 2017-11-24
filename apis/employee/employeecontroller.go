@@ -79,6 +79,13 @@ func GetRoutes() common.Routes {
 			AuthRequired:   constant.User,
 		},
 		common.Route{
+			Name:           "SearchStatus",
+			Method:         "POST",
+			Pattern:        "/employee/searchstatus",
+			ControllerFunc: ControlWrapper(SearchStatus),
+			AuthRequired:   constant.User,
+		},
+		common.Route{
 			Name:           "UpdateEmployee",
 			Method:         "PUT",
 			Pattern:        "/employee/{id}",
@@ -90,13 +97,6 @@ func GetRoutes() common.Routes {
 			Method:         "DELETE",
 			Pattern:        "/employee/{id}",
 			ControllerFunc: ControlWrapper(DeleteEmployee),
-			AuthRequired:   constant.User,
-		},
-		common.Route{
-			Name:           "SearchStatus",
-			Method:         "POST",
-			Pattern:        "/employee/searchstatus",
-			ControllerFunc: ControlWrapper(SearchStatus),
 			AuthRequired:   constant.User,
 		},
 	}
