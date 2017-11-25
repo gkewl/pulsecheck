@@ -3,6 +3,11 @@ package employee
 import (
 	"fmt"
 
+	"github.com/gkewl/pulsecheck/logger"
+
+	"github.com/gkewl/pulsecheck/apis/elasticsearch"
+	"github.com/gkewl/pulsecheck/apis/employeestatus"
+
 	"github.com/gkewl/pulsecheck/common"
 	"github.com/gkewl/pulsecheck/constant"
 	eh "github.com/gkewl/pulsecheck/errorhandler"
@@ -42,7 +47,16 @@ func (bl BLEmployee) Create(reqCtx common.RequestContext, emp model.Employee) (m
 		if err != nil {
 			return model.Employee{}, eh.NewError(eh.ErrEmployeeInsert, "DB Error: "+err.Error())
 		}
+		// create employee status also here
+		es := model.EmployeeStatus{
+			EmployeeID: e.ID,
+		}
+		_, err = employeestatus.BLEmployeeStatus{}.Create(reqCtx, es)
+		if err != nil {
+			return model.Employee{}, eh.WrapError(eh.ErrEmployeeInsert, err, "Unable to create employee status")
+		}
 	}
+	e.Dateofbirth = utilities.ParseDateToString(e.DateofbirthT)
 	return e, nil
 
 }
@@ -157,14 +171,17 @@ func (bl BLEmployee) Upload(reqCtx common.RequestContext, employees []model.Empl
 	output := []model.Employee{}
 
 	for _, emp := range employees {
-		e1, err := bl.Create(reqCtx, emp)
-		if err != nil {
-			return []model.Employee{}, eh.WrapError(eh.ErrEmployeeUpload, err, "error in uploading employee. %s", e1.ToString())
-		}
-		output = append(output, e1)
-	}
+		// e1, err := bl.Create(reqCtx, emp)
+		// if err != nil {
+		// 	return []model.Employee{}, eh.WrapError(eh.ErrEmployeeUpload, err, "error in uploading employee. %s", e1.ToString())
+		// }
 
-	// search in elastic
+		e2, err := bl.SearchStatus(reqCtx, emp)
+		if err != nil {
+			return []model.Employee{}, eh.WrapError(eh.ErrEmployeeUpload, err, "error in uploading employee. %s", emp.ToString())
+		}
+		output = append(output, e2)
+	}
 
 	return output, nil
 }
@@ -176,6 +193,51 @@ func (bl BLEmployee) SearchStatus(reqCtx common.RequestContext, emp model.Employ
 	if err != nil {
 		return model.Employee{}, eh.WrapError(eh.ErrEmployeeSearch, err, "error in searching employee. %s", e1.ToString())
 	}
+	//get the sources for this empployee to be searched
 	// search in elastic
-	return e1, nil
+	sources := []string{constant.Source_OIG}
+	var retErr error
+	for _, src := range sources {
+		err = bl.searchESAndUpdate(reqCtx, e1, src)
+		if err != nil {
+			logger.LogError(fmt.Sprintf("Error in searching employee id %d for source %s", e1.ID, src), reqCtx.Xid())
+			retErr = err
+		}
+	}
+	if retErr == nil {
+		return bl.Get(reqCtx, e1.ID)
+	}
+
+	return model.Employee{}, eh.WrapError(eh.ErrEmployeeSearch, retErr, "error in searching employee. %s", e1.ToString())
+}
+
+// searchESAndUpdate - search elastic search for source and update for employee status
+func (bl BLEmployee) searchESAndUpdate(reqCtx common.RequestContext, emp model.Employee, source string) error {
+	
+	
+	result, err := elasticsearch.BLElasticSearch{}.SearchOne(reqCtx, emp, source)
+	if err == nil {
+		if len(result) == 0 {
+			//update the result as not found
+			employeestatus.BLEmployeeStatus{}.Update(reqCtx, emp.ID, source, false)
+		}
+		for idx, res := range result {
+			if idx > 0 {
+				//log to check for alternate way
+				logger.LogInfo(fmt.Sprintf("Getting more result for the employee id %d   , result %+v", emp.ID, res), reqCtx.Xid())
+				continue
+			}
+
+			//update employee status
+			_, err = employeestatus.BLEmployeeStatus{}.Update(reqCtx, emp.ID, source, true)
+			if err != nil {
+				return err
+			}
+
+			//insert into employee transaction
+
+		}
+	}
+
+	return err
 }
