@@ -59,3 +59,7 @@ const (
 	Source_SAM = "SAM"
 	Source_OFAC = "OFAC"
 )
+
+const (
+	Reference_Test="1128a1"
+)

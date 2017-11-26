@@ -5,12 +5,12 @@ delimiter //
 CREATE TRIGGER `pulsecheck`.`employeestatus_AFTER_INSERT` AFTER INSERT ON `employeestatus` FOR EACH ROW
 BEGIN
  INSERT INTO employeestatus_a(
-id, employeeid, consider, ofac,  ofaclastsearch ,  oig,  oiglastsearch,
-  sam,  samlastsearch, isactive, createdby, created,modifiedby, modified
+id, employeeid, consider, ofac,  ofaclastsearch , ofacreference,  oig,  oiglastsearch,oigreference,
+  sam,  samlastsearch,samreference, isactive, createdby, created,modifiedby, modified
 )
    VALUES (
-new.id, new.employeeid, new.consider, new.ofac,  new.ofaclastsearch ,  new.oig,  new.oiglastsearch,
-  new.sam,  new.samlastsearch, new.isactive,
+new.id, new.employeeid, new.consider, new.ofac,  new.ofaclastsearch , new.ofacreference, new.oig,  new.oiglastsearch,new.oigreference, 
+  new.sam,  new.samlastsearch, new.samreference,new.isactive,
 new.createdby, new.created, new.modifiedby, new.modified
 );
 END;//
@@ -24,12 +24,12 @@ CREATE  TRIGGER `pulsecheck`.`employeestatus_after_update`
    AFTER UPDATE ON `employeestatus` FOR EACH ROW
 BEGIN
    INSERT INTO employeestatus_a(
-id, employeeid, consider, ofac,  ofaclastsearch ,  oig,  oiglastsearch,
-  sam,  samlastsearch, isactive, createdby, created,modifiedby, modified
+id, employeeid, consider, ofac,  ofaclastsearch , ofacreference,  oig,  oiglastsearch,oigreference,
+  sam,  samlastsearch,samreference, isactive, createdby, created,modifiedby, modified
 )
    VALUES (
-new.id, new.employeeid, new.consider, new.ofac,  new.ofaclastsearch ,  new.oig,  new.oiglastsearch,
-  new.sam,  new.samlastsearch, new.isactive,
+new.id, new.employeeid, new.consider, new.ofac,  new.ofaclastsearch , new.ofacreference, new.oig,  new.oiglastsearch,new.oigreference, 
+  new.sam,  new.samlastsearch, new.samreference,new.isactive,
 new.createdby, new.created, new.modifiedby, new.modified
 );
 END;//

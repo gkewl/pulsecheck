@@ -16,8 +16,9 @@ import (
 
 const (
 	getQuery = `select es.id as id, es.employeeid as employeeid, 
-				 es.oig , es.oiglastsearch,es.sam , es.samlastsearch,  
-				 es.ofac , es.ofaclastsearch, es.consider,
+				 es.oig , es.oiglastsearch,es.oigreference,
+				 es.sam , es.samlastsearch, es.samreference, 
+				 es.ofac , es.ofaclastsearch,es.ofacreference,  es.consider,
 				 es.isactive as isactive, es.createdby as createdby, 
 				 es.created as created,
 			es.modifiedby as modifiedby, es.modified as modified from
@@ -53,10 +54,13 @@ func dlCreate(reqCtx common.RequestContext, es model.EmployeeStatus) (model.Empl
 		"employeeid":     es.EmployeeID,
 		"oig":            es.OIG,
 		"oiglastsearch":  es.OIGLastSearch,
+		"oigreference":   es.OIGReference,
 		"sam":            es.Sam,
 		"samlastsearch":  es.SamLastSearch,
+		"samreference":   es.SamReference,
 		"ofac":           es.Ofac,
 		"ofaclastsearch": es.OfacLastSearch,
+		"ofacreference":  es.OfacReference,
 		"isactive":       1,
 		"createdby":      reqCtx.UserName(),
 		"modifiedby":     reqCtx.UserName(),
@@ -76,21 +80,21 @@ func dlCreate(reqCtx common.RequestContext, es model.EmployeeStatus) (model.Empl
 }
 
 // dlUpdate updates fields on a employeestatus and returns full updated object
-func dlUpdate(reqCtx common.RequestContext, employeeID int64, source string, value bool) (model.EmployeeStatus, error) {
+func dlUpdate(reqCtx common.RequestContext, employeeID int64, source string, value bool, referene string) (model.EmployeeStatus, error) {
 	var setString string
 	switch source {
 	case constant.Source_OIG:
-		setString = `set oig=?, oiglastsearch=? `
+		setString = `set oig=?, oiglastsearch=? , oigreference=?`
 	case constant.Source_SAM:
-		setString = `set sam=?, samlastsearch=? `
+		setString = `set sam=?, samlastsearch=?  , samreference=?`
 	case constant.Source_OFAC:
-		setString = `set ofac=?, ofaclastsearch=? `
+		setString = `set ofac=?, ofaclastsearch=? , ofacreference=?`
 	default:
 		return model.EmployeeStatus{}, eh.NewError(eh.ErrEmployeeStatusUpdate, "Source %s not implemented")
 	}
 	now := utilities.Now()
 	query := `update employeestatus ` + setString + `, modifiedby =? where employeeid=?`
-	_, err := reqCtx.Tx().Exec(query, value, now, reqCtx.UserName(), employeeID)
+	_, err := reqCtx.Tx().Exec(query, value, now, referene, reqCtx.UserName(), employeeID)
 	if err == nil {
 		return dlGet(reqCtx, employeeID)
 	}

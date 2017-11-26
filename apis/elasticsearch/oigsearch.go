@@ -84,7 +84,6 @@ func (bl BLElasticSearch) SearchOIG(reqCtx common.RequestContext, oig model.OIGS
 		return []model.ElasticSearchResult{}, err
 	}
 
-	
 	// Here's how you iterate through results with full control over each step.
 	if res.Hits != nil {
 		// Iterate through results

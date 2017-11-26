@@ -1,7 +1,7 @@
 package employeestatus_test
 
 import (
-	"fmt"
+	"gopkg.in/guregu/null.v3"
 
 	"github.com/gkewl/pulsecheck/utilities"
 	. "github.com/onsi/ginkgo"
@@ -23,11 +23,12 @@ func sampleEmployeeStatus(reqCtx common.RequestContext, t tst.T) (es model.Emplo
 	emp := t.Employee(employee.BLEmployee{}.Create(reqCtx, t.SampleEmployee()))
 
 	return model.EmployeeStatus{
-		EmployeeID: emp.ID,
-		Ofac:       true,
-		IsActive:   true,
-		CreatedBy:  "admin",
-		ModifiedBy: "admin",
+		EmployeeID:   emp.ID,
+		OIG:          true,
+		OIGReference: null.StringFrom(constant.Reference_Test),
+		IsActive:     true,
+		CreatedBy:    "admin",
+		ModifiedBy:   "admin",
 	}
 }
 
@@ -53,10 +54,9 @@ var _ = Describe("EmployeeStatus Business Logic Tests", func() {
 
 	It("creates a good employeestatus", func() {
 		es := t.EmployeeStatus(logic.Create(reqCtx, sampleEmployeeStatus(reqCtx, t)))
-		fmt.Printf("after %+v\n", es)
 		check := t.GetEmployeeStatus(es.EmployeeID)
 		Expect(check.EmployeeID).To(Equal(es.EmployeeID))
-		//Expect(check.Consider).To(BeTrue()) TBD to check why this is failing
+		//Expect(check.Consider).To(BeTrue()) //TBD to check why this is failing
 	})
 
 	It("gets all employeestatuss", func() {
@@ -77,18 +77,21 @@ var _ = Describe("EmployeeStatus Business Logic Tests", func() {
 		Expect(check.Consider).To(BeFalse())
 
 		By("updating the employeestatus")
-		t.UpdateEmployeeStatus(es.EmployeeID, constant.Source_OIG, true)
+		t.UpdateEmployeeStatus(es.EmployeeID, constant.Source_OIG, true, constant.Reference_Test)
 
 		By("retrieving the employeestatus")
 		check = t.GetEmployeeStatus(es.EmployeeID)
 		Expect(check.OIG).To(BeTrue())
 		Expect(check.Consider).To(BeTrue())
-		Expect(check.OfacLastSearch).ToNot(BeNil())
+		Expect(check.OIGLastSearch).ToNot(BeNil())
+		Expect(check.OIGReference.String).To(Equal(constant.Reference_Test))
+
+		Expect(utilities.ConfirmValuesInSlice(check.Sources, "Reference", constant.Reference_Test)).To(BeNil())
 
 	})
 
 	It("does not update a employeestatus that isn't there", func() {
-		_ = t.EmployeeStatusErr(logic.Update(reqCtx, 0, constant.Source_SAM, true))
+		_ = t.EmployeeStatusErr(logic.Update(reqCtx, 0, constant.Source_SAM, true, "1128a1"))
 	})
 
 	It("deletes a employeestatus", func() {
