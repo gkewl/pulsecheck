@@ -31,7 +31,7 @@ func (bl *MockBLEmployeeStatus) GetAll(reqCtx common.RequestContext, limit int64
 }
 
 // Update mocks update of a single employeestatus
-func (bl *MockBLEmployeeStatus) Update(reqCtx common.RequestContext, id int64, source string, value bool) (model.EmployeeStatus, error) {
+func (bl *MockBLEmployeeStatus) Update(reqCtx common.RequestContext, id int64, source string, value bool, reference string) (model.EmployeeStatus, error) {
 	bl.ID = id
 	return model.EmployeeStatus{}, bl.Err
 }

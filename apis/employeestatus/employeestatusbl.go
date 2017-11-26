@@ -1,6 +1,8 @@
 package employeestatus
 
 import (
+	//	"github.com/gkewl/pulsecheck/apis/companysource"
+	"github.com/gkewl/pulsecheck/apis/companysource"
 	"github.com/gkewl/pulsecheck/common"
 	"github.com/gkewl/pulsecheck/constant"
 	eh "github.com/gkewl/pulsecheck/errorhandler"
@@ -13,7 +15,7 @@ type BizLogic interface {
 	Get(common.RequestContext, int64) (model.EmployeeStatus, error)
 
 	GetAll(common.RequestContext, int64) ([]model.EmployeeStatus, error)
-	Update(common.RequestContext, int64, string, bool) (model.EmployeeStatus, error)
+	Update(common.RequestContext, int64, string, bool, string) (model.EmployeeStatus, error)
 	Delete(common.RequestContext, int64) (string, error)
 
 	//Search(common.RequestContext, string, int64) ([]model.EmployeeStatus, error)
@@ -39,6 +41,15 @@ func (bl BLEmployeeStatus) Get(reqCtx common.RequestContext, employeeID int64) (
 	if err != nil || es.ID == 0 {
 		return model.EmployeeStatus{}, eh.NewErrorNotFound(eh.ErrEmployeeStatusDataNotFound, err, `EmployeeStatus not found: employeeID %d`, employeeID)
 	}
+
+	// Get the sources for the company
+	srcs, err := companysource.BLCompanySource{}.GetForCompany(reqCtx, reqCtx.CompanyID())
+	if err != nil {
+		return model.EmployeeStatus{}, eh.WrapError(eh.ErrEmployeeStatusDataNotFound, err, `Sources not found for Company %d`, reqCtx.CompanyID)
+	}
+
+	//shows the sources
+	es.Sources = es.ToSourceDetail(srcs)
 	return
 }
 
@@ -48,11 +59,23 @@ func (bl BLEmployeeStatus) GetAll(reqCtx common.RequestContext, limit int64) (es
 	if err != nil {
 		return []model.EmployeeStatus{}, eh.NewError(eh.ErrEmployeeStatusDataNotFound, "DB Error: "+err.Error())
 	}
+
+	// Get the sources for the company
+	srcs, err := companysource.BLCompanySource{}.GetForCompany(reqCtx, reqCtx.CompanyID())
+	if err != nil {
+		return []model.EmployeeStatus{}, eh.WrapError(eh.ErrEmployeeStatusDataNotFound, err, `Sources not found for Company %d`, reqCtx.CompanyID)
+	}
+
+	for idx, es := range ess {
+		//shows the sources
+		ess[idx].Sources = es.ToSourceDetail(srcs)
+	}
+
 	return
 }
 
 // Update updates a single employeestatus
-func (bl BLEmployeeStatus) Update(reqCtx common.RequestContext, employeeID int64, source string, value bool) (model.EmployeeStatus, error) {
+func (bl BLEmployeeStatus) Update(reqCtx common.RequestContext, employeeID int64, source string, value bool, reference string) (model.EmployeeStatus, error) {
 
 	s, err := bl.Get(reqCtx, employeeID)
 	if err != nil {
@@ -65,7 +88,7 @@ func (bl BLEmployeeStatus) Update(reqCtx common.RequestContext, employeeID int64
 		}
 	}
 
-	result, err := dlUpdate(reqCtx, employeeID, source, value)
+	result, err := dlUpdate(reqCtx, employeeID, source, value, reference)
 	if err != nil {
 		return model.EmployeeStatus{}, eh.NewError(eh.ErrEmployeeStatusUpdate, "DB Error: "+err.Error())
 	}

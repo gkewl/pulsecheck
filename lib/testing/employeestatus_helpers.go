@@ -35,10 +35,10 @@ func (t *T) ReGetEmployeeStatus(es model.EmployeeStatus, e error) model.Employee
 }
 
 // UpdateEmployeeStatus expects a employeestatus struct and updates it, verifying no error
-func (t *T) UpdateEmployeeStatus(employeeID int64, source string, value bool) model.EmployeeStatus {
+func (t *T) UpdateEmployeeStatus(employeeID int64, source string, value bool, referenec string) model.EmployeeStatus {
 
 	Expect(t.ReqCtx).ToNot(BeNil(), callers())
-	es, e := employeestatus.BLEmployeeStatus{}.Update(t.ReqCtx, employeeID, source, value)
+	es, e := employeestatus.BLEmployeeStatus{}.Update(t.ReqCtx, employeeID, source, value, referenec)
 	Expect(e).To(BeNil(), callers())
 	return es
 }
