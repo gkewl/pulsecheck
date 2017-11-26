@@ -213,13 +213,12 @@ func (bl BLEmployee) SearchStatus(reqCtx common.RequestContext, emp model.Employ
 
 // searchESAndUpdate - search elastic search for source and update for employee status
 func (bl BLEmployee) searchESAndUpdate(reqCtx common.RequestContext, emp model.Employee, source string) error {
-	
-	
+
 	result, err := elasticsearch.BLElasticSearch{}.SearchOne(reqCtx, emp, source)
 	if err == nil {
 		if len(result) == 0 {
 			//update the result as not found
-			employeestatus.BLEmployeeStatus{}.Update(reqCtx, emp.ID, source, false)
+			employeestatus.BLEmployeeStatus{}.Update(reqCtx, emp.ID, source, false, "")
 		}
 		for idx, res := range result {
 			if idx > 0 {
@@ -229,7 +228,7 @@ func (bl BLEmployee) searchESAndUpdate(reqCtx common.RequestContext, emp model.E
 			}
 
 			//update employee status
-			_, err = employeestatus.BLEmployeeStatus{}.Update(reqCtx, emp.ID, source, true)
+			_, err = employeestatus.BLEmployeeStatus{}.Update(reqCtx, emp.ID, source, true, res.Excltype)
 			if err != nil {
 				return err
 			}

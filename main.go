@@ -20,6 +20,7 @@ import (
 	"github.com/gkewl/pulsecheck/connectionhandler"
 	"github.com/gkewl/pulsecheck/dbhandler"
 	eh "github.com/gkewl/pulsecheck/errorhandler"
+	"github.com/gkewl/pulsecheck/lib/exclusion"
 	"github.com/gkewl/pulsecheck/routehandler"
 	"github.com/gkewl/pulsecheck/rroutes"
 )
@@ -84,6 +85,7 @@ func main() {
 
 	//Initialize concrete instances
 	//Initialize()
+	exclusion.InitializeExclusions()
 
 	env := "DEV"
 	timeout, _ := time.ParseDuration("60s")
