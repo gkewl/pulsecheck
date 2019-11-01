@@ -84,7 +84,7 @@ func NewHTTPRequestContext(appCtx *common.AppContext, r *http.Request) (hrc HTTP
 		}
 	}
 
-	// this timeout mostly affects MOS internal clients, eg database handles
+	// this timeout mostly affects database handles
 	timeout, _ := time.ParseDuration("60s")
 
 	hrc.Context = context.TODO() //context.Background()
